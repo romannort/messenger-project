@@ -27,9 +27,9 @@ namespace iMessenger
         MainWindow window;
 
         
-        public Core()
+        public Core(MainWindow window)
         {
-            window = new MainWindow() { core = this };
+            this.window = window;
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start();
         }

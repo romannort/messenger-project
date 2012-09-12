@@ -27,7 +27,7 @@ namespace iMessenger
     {
 
         public String UserName { get; set; }
-        public Core core { get; set; }
+        public Core Core { get; set; }
 
 
         public MainWindow()
@@ -38,14 +38,19 @@ namespace iMessenger
 
         private void Chat_Loaded(object sender, RoutedEventArgs e)
         {
-            // Decrease new line margin
-            NickBox.Text = core.GetUserName();
-            UserName = NickBox.Text;
-            core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
+            try{
+                // Decrease new line margin
+                NickBox.Text = Core.GetUserName();
+                UserName = NickBox.Text;
+                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
 
-            NetInteraction net = new NetInteraction();
+                NetInteraction net = new NetInteraction();
 
-            MessageBox.Focus();
+                MessageBox.Focus();    
+            }catch( NullReferenceException exeption){
+
+            }
+            
         }
 
         // Move to Net Classes
@@ -71,14 +76,14 @@ namespace iMessenger
             String data = UserName + " logged out.";
 
             
-            core.SendMessage(Message.Serialize(GenerateMessage(data)));
+            Core.SendMessage(Message.Serialize(GenerateMessage(data)));
             Environment.Exit(0x0);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
-                core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText())));
+                Core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText())));
         }
 
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
@@ -121,7 +126,7 @@ namespace iMessenger
             }
             else
             {
-                core.SendMessage(Message.Serialize(GenerateMessage(UserName + " change nickname to " + NickBox.Text)));
+                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " change nickname to " + NickBox.Text)));
                 UserName = NickBox.Text;
             }
         }

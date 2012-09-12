@@ -12,5 +12,16 @@ namespace iMessenger
     /// </summary>
     public partial class App : Application
     {
+
+        //protected override void OnStartUp(object sender, StartupEventArgs e)
+        //{
+        //    //this works! 
+        //    MainWindow window = new MainWindow();
+        //    Core core = new Core(window);
+        //    window.Core = core;
+            
+        //    window.Show();
+        //}
     }
 }
+
