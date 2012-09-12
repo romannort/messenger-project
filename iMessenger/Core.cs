@@ -25,12 +25,12 @@ namespace iMessenger
         private  UdpClient receiveClient = new UdpClient(1800);
         private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
         public   MainWindow window;
-        public static String UserName { get; set; }
+        public  String UserName { get; set; }
 
 
         public Core(MainWindow window)
         {
-            //window = new MainWindow();
+     
             this.window = window;
             UserName = GetUserIP();
         }
@@ -59,25 +59,12 @@ namespace iMessenger
             }
         }
 
-        public  void ReceiveMessages()
+        public void ReceiveMessages()
         {
             try
             {
-                while (true)
-                {
-                    Byte[] receivedData = receiveClient.Receive(ref receiveEndPoint);
-                    Message message = Message.Deserialize(receivedData);
-
-                    // change later
-                    if (message.Text.Contains(" logged out.") && message.SenderName == UserName)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        window.ShowMessage(message);
-                    }
-                }
+                while ( AnalyzeReceivedData(receiveClient.Receive(ref receiveEndPoint)) )
+                {            }
                 Thread.CurrentThread.Abort();
                 Environment.Exit(0x0);
             }
@@ -86,6 +73,17 @@ namespace iMessenger
                 Environment.Exit(0x0);
             }
 
+        }
+
+        private Boolean AnalyzeReceivedData(Byte[] data){
+            Message message = Message.Deserialize(data);
+
+            if (message.Text.Contains(" logged out.") && message.SenderName == UserName)
+            {
+                return false;
+            }
+            window.ShowMessage(message);
+            return true;
         }
         
 
