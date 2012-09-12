@@ -42,7 +42,8 @@ namespace iMessenger
         private void Chat_Loaded(object sender, RoutedEventArgs e)
         {
             // Decrease new line margin 
-            ChatArea.Document.Blocks.Add( new Paragraph( new Run( UserName + " joined conference.")));
+            NickBox.Text = GetUserName();
+            SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
 
             // Move to Net classes ?
             Thread receivingThread = new Thread(ReceiveMessages);
@@ -52,6 +53,14 @@ namespace iMessenger
             MessageBox.Focus();
         }
 
+        private string GetUserName()
+        {
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+                if (ip.AddressFamily.ToString() == "InterNetwork")
+                    UserName = ip.ToString();
+            return UserName;
+        }
         
         /// <summary>
         ///  Move to Net classes ?
@@ -133,20 +142,20 @@ namespace iMessenger
         {
             String data = UserName + " logged out.";
             
-            SendMessage(data);
+            SendMessage(Message.Serialize(GenerateMessage(data)));
             Environment.Exit(0x0);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            SendMessage(Message.Serialize(GetMessage()));
+            SendMessage(Message.Serialize(GenerateMessage()));
         }
 
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                SendMessage(Message.Serialize(GetMessage()));
+                SendMessage(Message.Serialize(GenerateMessage()));
             }
         }
         
@@ -172,8 +181,8 @@ namespace iMessenger
         /// Generates Message object
         /// </summary>
         /// <returns></returns>
-        private Message GetMessage(){
-
+        private Message GenerateMessage()
+        {
             return new Message()
             {
                 SenderName = UserName,
@@ -181,6 +190,30 @@ namespace iMessenger
                 Text = GetMessageText(),
                 Time = DateTime.Now
             };
+        }
+
+        private Message GenerateMessage(string data)
+        {
+            return new Message()
+            {
+                SenderName = UserName,
+                ReceiverName = null,
+                Text = data,
+                Time = DateTime.Now
+            };
+        }
+
+        private void NickBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (String.IsNullOrEmpty(NickBox.Text))
+            {
+                NickBox.Text = UserName;
+            }
+            else
+            {
+                SendMessage(Message.Serialize(GenerateMessage(UserName + " change nickname to " + NickBox.Text)));
+                UserName = NickBox.Text;
+            }
         }
         
     }
