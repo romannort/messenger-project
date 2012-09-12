@@ -27,12 +27,11 @@ namespace iMessenger
     {
 
         public String UserName { get; set; }
-        private Core core;
+        public Core core { get; set; }
 
 
-        public MainWindow(Core a)
+        public MainWindow()
         {
-            core = a;
             InitializeComponent();
             NetInteraction.window = this;
         }

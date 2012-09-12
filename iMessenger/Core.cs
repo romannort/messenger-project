@@ -29,7 +29,7 @@ namespace iMessenger
         
         public Core()
         {
-            window = new MainWindow(this);
+            window = new MainWindow() { core = this };
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start();
         }
@@ -57,12 +57,14 @@ namespace iMessenger
 
         public void SendMessage(Byte[] data)
         {
-            if (data == null) return;   // add exception later
+            try{
+                UdpClient sendClient = new UdpClient();
+                IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
+                sendClient.Send(data, data.Length, endPoint);
+                sendClient.Close();
+            }catch( NullReferenceException e){
 
-            UdpClient sendClient = new UdpClient();
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-            sendClient.Send(data, data.Length, endPoint);
-            sendClient.Close();
+            }
         }
 
         public void ReceiveMessages()
