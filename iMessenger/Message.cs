@@ -19,16 +19,20 @@ namespace iMessenger
 
         public String getMessageString()
         {
-            return "[" + Time.ToShortTimeString() + "] " + SenderName + ":" + Text;  
+            return "[" + Time.ToString("hh:mm:ss") + "] " + SenderName + ": " + Text;  
         }
-        public static Message Deserialize( Byte[] buffer){
+
+        public static Message Deserialize( Byte[] buffer)
+        {
             IFormatter formatter = new BinaryFormatter();
             Stream s = new MemoryStream(buffer);
             Message m = (Message)formatter.Deserialize(s);
             s.Close();
             return m;
         }
-        public static Byte[] Serialize( Message m){
+
+        public static Byte[] Serialize( Message m)
+        {
             IFormatter formatter = new BinaryFormatter();
             MemoryStream stream = new MemoryStream();
             formatter.Serialize(stream, m);

@@ -27,110 +27,43 @@ namespace iMessenger
     {
 
         public String UserName { get; set; }
-
-        // Move to Net Classes
-        //private UdpClient receiveClient = new UdpClient(1800);
-        //private IPEndPoint receiveEndPint = new IPEndPoint(IPAddress.Any, 0);
-        // 
+        private Core core;
 
 
-        public MainWindow()
+        public MainWindow(Core a)
         {
+            core = a;
             InitializeComponent();
             NetInteraction.window = this;
         }
 
         private void Chat_Loaded(object sender, RoutedEventArgs e)
         {
-            // Decrease new line margin 
-            ChatArea.Document.Blocks.Add( new Paragraph( new Run( UserName + " joined conference.")));
-
-            // Move to Net classes ?
-            //Thread receivingThread = new Thread(ReceiveMessages);
-            //receivingThread.Start();
-            //
+            // Decrease new line margin
+            NickBox.Text = core.GetUserName();
+            UserName = NickBox.Text;
+            core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
 
             NetInteraction net = new NetInteraction();
 
             MessageBox.Focus();
         }
 
-        
-        /// <summary>
-        ///  Move to Net classes ?
-        /// </summary>
-        //private void ReceiveMessages()
-        //{
-        //    try
-        //    {
-        //        while (true)
-        //        {
-        //            Byte[] receivedData = receiveClient.Receive(ref receiveEndPint);
-        //            Message message = Message.Deserialize(receivedData);
-
-        //            // change later
-        //            if (message.Text.Contains(" logged out.") && message.SenderName == UserName)
-        //            {
-        //                break;
-        //            }
-        //            else
-        //            {
-        //                ShowMessage(message);
-        //            }
-        //        }
-        //        Thread.CurrentThread.Abort();
-        //        Environment.Exit(0x0);
-        //    }
-        //    catch (ThreadAbortException ex)
-        //    {
-        //        Environment.Exit(0x0);
-        //    }
-
-        //}
-
         // Move to Net Classes
-        
-        //private void SendMessage(String data) 
-        //{
-        //    if (data == null) return;   // add exception later
-
         //    UdpClient sendClient = new UdpClient();
         //    Byte[] message = Encoding.ASCII.GetBytes(data);
         //    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
         //    sendClient.Send(message, message.Length, endPoint);
         //    sendClient.Close();
 
-
+        public void ShowMessage(Message message)
         //}
-
-        /// <summary>
-        /// Test serialization and sending
-        /// </summary>
-        /// <param name="data"></param>
-        //private void SendMessage(Byte[] data)
-        //{
-        //    if (data == null) return;   // add exception later
-
-        //    UdpClient sendClient = new UdpClient();
-        //    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-        //    sendClient.Send(data, data.Length, endPoint);
-        //    sendClient.Close();
-
-        //}
-
-        /// <summary>
-        /// Move to Net classes
-        /// </summary>
-        /// <param name="message"></param>
-        public void ShowMessage( Message message)
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
                 // Decrease new line margin 
-                ChatArea.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString() )));
+                ChatArea.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
             });
-            // logging ?
-            // feedback ?
         }
        
 
@@ -138,27 +71,25 @@ namespace iMessenger
         {
             String data = UserName + " logged out.";
 
-            NetInteraction.SendMessage( Message.Serialize(new Message(){ Text = data }));
+            
+            core.SendMessage(Message.Serialize(GenerateMessage(data)));
             Environment.Exit(0x0);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            NetInteraction.SendMessage(Message.Serialize(GetMessage()));
+            if (!String.IsNullOrEmpty(MessageBox.Text))
+                core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText())));
         }
 
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                NetInteraction.SendMessage(Message.Serialize(GetMessage()));
+                SendButton_Click(sender, new RoutedEventArgs());
             }
         }
         
-        /// <summary>
-        /// Gets message text from MessageBox input
-        /// </summary>
-        /// <returns></returns>
         private String GetMessageText()
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
@@ -172,20 +103,28 @@ namespace iMessenger
         }
 
 
-        // Rename to GenerateMessage ?
-        /// <summary>
-        /// Generates Message object
-        /// </summary>
-        /// <returns></returns>
-        private Message GetMessage(){
-
+        private Message GenerateMessage(string data)
+        {
             return new Message()
             {
                 SenderName = UserName,
                 ReceiverName = null,
-                Text = GetMessageText(),
+                Text = data,
                 Time = DateTime.Now
             };
+        }
+
+        private void NickBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (String.IsNullOrEmpty(NickBox.Text))
+            {
+                NickBox.Text = UserName;
+            }
+            else
+            {
+                core.SendMessage(Message.Serialize(GenerateMessage(UserName + " change nickname to " + NickBox.Text)));
+                UserName = NickBox.Text;
+            }
         }
         
     }
