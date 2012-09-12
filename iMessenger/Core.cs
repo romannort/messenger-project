@@ -22,19 +22,22 @@ namespace iMessenger
 {
     public class Core
     {
-        private UdpClient receiveClient = new UdpClient(1800);
-        private IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        MainWindow window;
+        private static UdpClient receiveClient = new UdpClient(1800);
+        private static IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        public static MainWindow window;
 
         
         public Core()
         {
-            window = new MainWindow(this);
-            Thread receivingThread = new Thread(ReceiveMessages);
-            receivingThread.Start();
+            window = new MainWindow();
         }
 
-        public string GetUserName()
+        public static void StartReceive()
+        {
+            Thread receivingThread = new Thread(ReceiveMessages);
+            receivingThread.Start(); 
+        }
+        public static string GetUserName()
         {
             string UserName = "";
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
@@ -44,7 +47,7 @@ namespace iMessenger
             return UserName;
         }
 
-        public void SendMessage(String data)
+        public static void SendMessage(String data)
         {
             if (data == null) return;   // add exception later
 
@@ -55,7 +58,7 @@ namespace iMessenger
             sendClient.Close();
         }
 
-        public void SendMessage(Byte[] data)
+        public static void SendMessage(Byte[] data)
         {
             if (data == null) return;   // add exception later
 
@@ -65,7 +68,7 @@ namespace iMessenger
             sendClient.Close();
         }
 
-        public void ReceiveMessages()
+        public static void ReceiveMessages()
         {
             try
             {
@@ -75,7 +78,7 @@ namespace iMessenger
                     Message message = Message.Deserialize(receivedData);
 
                     // change later
-                    if (message.Text.Contains(" logged out.") && message.SenderName == window.UserName)
+                    if (message.Text.Contains(" logged out.") && message.SenderName == MainWindow.UserName)
                     {
                         break;
                     }
