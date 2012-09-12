@@ -26,8 +26,7 @@ namespace iMessenger
     public partial class MainWindow : Window
     {
 
-        public String UserName { get; set; }
-        public Core Core { get; set; }
+        public static String UserName { get; set; }
 
 
         public MainWindow()
@@ -40,12 +39,11 @@ namespace iMessenger
         {
             try{
                 // Decrease new line margin
-                NickBox.Text = Core.GetUserName();
+            NickBox.Text = Core.GetUserName();
                 UserName = NickBox.Text;
-                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
+            Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
 
-                NetInteraction net = new NetInteraction();
-
+            Core.StartReceive();
                 MessageBox.Focus();    
             }catch( NullReferenceException exeption){
 
@@ -54,18 +52,11 @@ namespace iMessenger
         }
 
         // Move to Net Classes
-        //    UdpClient sendClient = new UdpClient();
-        //    Byte[] message = Encoding.ASCII.GetBytes(data);
-        //    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-        //    sendClient.Send(message, message.Length, endPoint);
-        //    sendClient.Close();
 
         public void ShowMessage(Message message)
-        //}
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                // Decrease new line margin 
                 ChatArea.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
             });
         }
