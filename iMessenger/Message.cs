@@ -9,7 +9,7 @@ using System.Text;
 namespace iMessenger
 {
     [Serializable]
-    class Message
+    public class Message
     {
         public String Text { get; set; }
         public String[] ReceiverName { get; set; } // array of user if conference, null if broadcast ( offline, online )
