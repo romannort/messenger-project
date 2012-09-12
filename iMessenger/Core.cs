@@ -33,17 +33,15 @@ namespace iMessenger
             this.window = window;
         }
 
-        public  void StartReceive()
+        public  void StartReceiving()
         {
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
         public  string GetUserIP()
         {
-            string UserName = "";
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
             return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork").ToString();
-
         }
 
         public  void SendMessage(Byte[] data)

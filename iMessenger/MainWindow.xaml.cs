@@ -41,7 +41,7 @@ namespace iMessenger
                 NickBox.Text = Core.GetUserIP();
                 UserName = NickBox.Text;
                 Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.", "system")));
-                Core.StartReceive();
+                Core.StartReceiving();
                 MessageBox.Focus();    
             }catch( NullReferenceException exeption){
 
