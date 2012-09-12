@@ -23,9 +23,14 @@
         <TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="137,283,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="279" ToolTip="Type message here" KeyDown="MessageBox_KeyDown" Grid.Row="1" Grid.ColumnSpan="2"/>
         <Button x:Name="SendButton" Content="Send" HorizontalAlignment="Left" Margin="423,283,0,0" VerticalAlignment="Top" Width="194" Click="SendButton_Click" Grid.ColumnSpan="3" Grid.Row="1" Height="22" />
         <ListBox x:Name="ConnectList" HorizontalAlignment="Left" Height="264" Margin="423,12,0,0" VerticalAlignment="Top" Width="194" Grid.ColumnSpan="3" Grid.Row="1"/>
-        <RichTextBox x:Name="ChatArea" HorizontalAlignment="Left" Height="264" Margin="10,12,0,0" VerticalAlignment="Top" Width="406" AllowDrop="False" IsReadOnly="True" VerticalScrollBarVisibility="Auto" Grid.Row="1" Grid.ColumnSpan="2">
+        <RichTextBox x:Name="ChatArea" HorizontalAlignment="Left" Height="264" Margin="10,12,0,0" VerticalAlignment="Top" Width="406" AllowDrop="False" IsReadOnly="True" VerticalScrollBarVisibility="Auto" Grid.Row="1" Grid.ColumnSpan="2" AcceptsReturn="False" IsUndoEnabled="False">
+            <RichTextBox.Resources>
+                <Style TargetType="{x:Type Paragraph}">
+                    <Setter Property="Margin" Value="0"/>
+                </Style>
+            </RichTextBox.Resources>
             <FlowDocument>
-                <Paragraph>
+                <Paragraph Margin="0,Auto,0,Auto">
                     <Run Text=""/>
                 </Paragraph>
             </FlowDocument>

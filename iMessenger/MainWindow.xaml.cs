@@ -42,6 +42,8 @@ namespace iMessenger
                 Core.SendMessage( GenerateMessage(Core.UserName + " joined conference.", MessageType.System));
                 Core.StartReceiving();
                 MessageBox.Focus();    
+
+    
             }catch( NullReferenceException exeption){
 
             }
@@ -53,6 +55,7 @@ namespace iMessenger
             Dispatcher.Invoke((ThreadStart)delegate
             {
                 ChatArea.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                ChatArea.ScrollToEnd();
             });
         }
        
