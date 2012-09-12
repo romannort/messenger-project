@@ -38,14 +38,12 @@ namespace iMessenger
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
-        public  string GetUserName()
+        public  string GetUserIP()
         {
             string UserName = "";
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (IPAddress ip in host.AddressList)
-                if (ip.AddressFamily.ToString() == "InterNetwork")
-                    UserName = ip.ToString();
-            return UserName;
+            return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork").ToString();
+
         }
 
         public  void SendMessage(Byte[] data)

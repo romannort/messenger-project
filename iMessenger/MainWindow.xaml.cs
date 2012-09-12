@@ -32,22 +32,20 @@ namespace iMessenger
         public MainWindow()
         {
             InitializeComponent();
-            //NetInteraction.window = this;
         }
 
         private void Chat_Loaded(object sender, RoutedEventArgs e)
         {
             try{
                 // Decrease new line margin
-                NickBox.Text = Core.GetUserName(); //exception here
+                NickBox.Text = Core.GetUserIP();
                 UserName = NickBox.Text;
-                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
+                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.", "system")));
                 Core.StartReceive();
                 MessageBox.Focus();    
             }catch( NullReferenceException exeption){
 
             }
-            
         }
 
         // Move to Net Classes
@@ -64,14 +62,14 @@ namespace iMessenger
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             String data = UserName + " logged out.";
-            Core.SendMessage(Message.Serialize(GenerateMessage(data)));
+            Core.SendMessage(Message.Serialize(GenerateMessage(data, "text")));
             Environment.Exit(0x0);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
-                Core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText())));
+                Core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText(), "text")));
         }
 
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
@@ -95,27 +93,29 @@ namespace iMessenger
         }
 
 
-        private Message GenerateMessage(string data)
+        private Message GenerateMessage(String data, String Type)
         {
             return new Message()
             {
                 SenderName = UserName,
                 ReceiverName = null,
                 Text = data
-              
             };
         }
 
         private void NickBox_LostFocus(object sender, RoutedEventArgs e)
         {
+            NicknameChanging();
+        }
+        
+        private void NicknameChanging(){
             if (!String.IsNullOrEmpty(NickBox.Text))
             {
-                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " changed nickname to " + NickBox.Text)));
+                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " changed nickname to " + NickBox.Text, "system")));
                 UserName = NickBox.Text;
             }
             NickBox.Text = UserName;
         }
-        
     }
     
 }
