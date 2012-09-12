@@ -39,7 +39,7 @@ namespace iMessenger
             try{
                 // Decrease new line margin
                 NickBox.Text = Core.UserName;
-                Core.SendMessage( GenerateMessage(Core.UserName + " joined conference.", "system"));
+                Core.SendMessage( GenerateMessage(Core.UserName + " joined conference.", MessageType.System));
                 Core.StartReceiving();
                 MessageBox.Focus();    
             }catch( NullReferenceException exeption){
@@ -60,14 +60,14 @@ namespace iMessenger
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             String data = Core.UserName + " logged out.";
-            Core.SendMessage(GenerateMessage(data, "text"));
+            Core.SendMessage(GenerateMessage(data, MessageType.Text));
             Environment.Exit(0x0);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
-                Core.SendMessage(GenerateMessage(GetMessageText(), "text"));
+                Core.SendMessage(GenerateMessage(GetMessageText(), MessageType.Text));
         }
 
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
@@ -90,13 +90,14 @@ namespace iMessenger
             return null;
         }
 
-        private Message GenerateMessage(String data, String Type)
+        private Message GenerateMessage(String data, MessageType Type)
         {
             return new Message()
             {
                 SenderName = Core.UserName,
                 ReceiverName = null,
-                Text = data
+                Text = data,
+                Type = Type
             };
         }
         
@@ -109,7 +110,7 @@ namespace iMessenger
         private void NicknameChanging(){
             if (!String.IsNullOrEmpty(NickBox.Text))
             {
-                Core.SendMessage(GenerateMessage(Core.UserName + " changed nickname to " + NickBox.Text, "system"));
+                Core.SendMessage(GenerateMessage(Core.UserName + " changed nickname to " + NickBox.Text, MessageType.System));
                 Core.UserName = NickBox.Text;
             }
             NickBox.Text = Core.UserName;

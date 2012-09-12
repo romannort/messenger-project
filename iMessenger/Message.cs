@@ -14,7 +14,7 @@ namespace iMessenger
         public String Text { get; set; }
         public String[] ReceiverName { get; set; } // array of user if conference, null if broadcast ( offline, online )
         public String SenderName { get; set; }
-        public String Type { get; set; }    // type of message- > "text", "system" ( log in, out, change nick, etc), "status"( change status, etc)
+        public MessageType Type { get; set; }    
         
         public String getMessageString()
         {
@@ -29,7 +29,6 @@ namespace iMessenger
             s.Close();
             return m;
         }
-
         public static Byte[] Serialize( Message m)
         {
             IFormatter formatter = new BinaryFormatter();
@@ -42,4 +41,6 @@ namespace iMessenger
         }
         
     }
+
+    public enum MessageType { Text = 0, System, Status }
 }

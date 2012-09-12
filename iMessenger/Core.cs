@@ -30,7 +30,6 @@ namespace iMessenger
 
         public Core(MainWindow window)
         {
-     
             this.window = window;
             UserName = GetUserIP();
         }
@@ -63,8 +62,7 @@ namespace iMessenger
         {
             try
             {
-                while ( AnalyzeReceivedData(receiveClient.Receive(ref receiveEndPoint)) )
-                {            }
+                while ( AnalyzeReceivedData() ) { }
                 Thread.CurrentThread.Abort();
                 Environment.Exit(0x0);
             }
@@ -75,10 +73,11 @@ namespace iMessenger
 
         }
 
-        private Boolean AnalyzeReceivedData(Byte[] data){
-            Message message = Message.Deserialize(data);
+        private Boolean AnalyzeReceivedData(){
 
-            if (message.Text.Contains(" logged out.") && message.SenderName == UserName)
+            Message message = Message.Deserialize(receiveClient.Receive(ref receiveEndPoint));
+
+            if (message.Text.Contains("logged out.") && message.SenderName == UserName && message.Type == MessageType.System)
             {
                 return false;
             }
