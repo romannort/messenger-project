@@ -26,21 +26,16 @@ namespace iMessenger
     public partial class MainWindow : Window
     {
 
-        public String UserName { get; set; }
 <<<<<<< HEAD
-
-        // Move to Net Classes
-        //private UdpClient receiveClient = new UdpClient(1800);
-        //private IPEndPoint receiveEndPint = new IPEndPoint(IPAddress.Any, 0);
-        // 
+        public String UserName { get; set; }
+        public Core Core { get; set; }
 =======
-        private Core core;
->>>>>>> 47194f1c5e732e3a3bedd8a534751c88d8e42c47
+        public static String UserName { get; set; }
+>>>>>>> 03283cbc3309b06644ba892b41ae2b3353974081
 
 
-        public MainWindow(Core a)
+        public MainWindow()
         {
-            core = a;
             InitializeComponent();
             NetInteraction.window = this;
         }
@@ -48,103 +43,42 @@ namespace iMessenger
         private void Chat_Loaded(object sender, RoutedEventArgs e)
         {
 <<<<<<< HEAD
-            // Decrease new line margin 
-            ChatArea.Document.Blocks.Add( new Paragraph( new Run( UserName + " joined conference.")));
+            try{
+                // Decrease new line margin
+                NickBox.Text = Core.GetUserName();
+                UserName = NickBox.Text;
+                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
 
-            // Move to Net classes ?
-            //Thread receivingThread = new Thread(ReceiveMessages);
-            //receivingThread.Start();
-            //
+                NetInteraction net = new NetInteraction();
+
+                MessageBox.Focus();    
+            }catch( NullReferenceException exeption){
+
+            }
+            
 =======
             // Decrease new line margin
-            NickBox.Text = core.GetUserName();
+            NickBox.Text = Core.GetUserName();
             UserName = NickBox.Text;
-            core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
->>>>>>> 47194f1c5e732e3a3bedd8a534751c88d8e42c47
+            Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.")));
 
-            NetInteraction net = new NetInteraction();
-
+            Core.StartReceive();
             MessageBox.Focus();
+>>>>>>> 03283cbc3309b06644ba892b41ae2b3353974081
         }
 
-<<<<<<< HEAD
-        
-        /// <summary>
-        ///  Move to Net classes ?
-        /// </summary>
-        //private void ReceiveMessages()
-        //{
-        //    try
-        //    {
-        //        while (true)
-        //        {
-        //            Byte[] receivedData = receiveClient.Receive(ref receiveEndPint);
-        //            Message message = Message.Deserialize(receivedData);
-
-        //            // change later
-        //            if (message.Text.Contains(" logged out.") && message.SenderName == UserName)
-        //            {
-        //                break;
-        //            }
-        //            else
-        //            {
-        //                ShowMessage(message);
-        //            }
-        //        }
-        //        Thread.CurrentThread.Abort();
-        //        Environment.Exit(0x0);
-        //    }
-        //    catch (ThreadAbortException ex)
-        //    {
-        //        Environment.Exit(0x0);
-        //    }
-
-        //}
-
         // Move to Net Classes
-        
-        //private void SendMessage(String data) 
-        //{
-        //    if (data == null) return;   // add exception later
-
         //    UdpClient sendClient = new UdpClient();
         //    Byte[] message = Encoding.ASCII.GetBytes(data);
         //    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
         //    sendClient.Send(message, message.Length, endPoint);
         //    sendClient.Close();
 
-
-        //}
-
-        /// <summary>
-        /// Test serialization and sending
-        /// </summary>
-        /// <param name="data"></param>
-        //private void SendMessage(Byte[] data)
-        //{
-        //    if (data == null) return;   // add exception later
-
-        //    UdpClient sendClient = new UdpClient();
-        //    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-        //    sendClient.Send(data, data.Length, endPoint);
-        //    sendClient.Close();
-
-        //}
-
-        /// <summary>
-        /// Move to Net classes
-        /// </summary>
-        /// <param name="message"></param>
-        public void ShowMessage( Message message)
-=======
-        // Move to Net Classes
-
         public void ShowMessage(Message message)
->>>>>>> 47194f1c5e732e3a3bedd8a534751c88d8e42c47
+        //}
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                // Decrease new line margin 
                 ChatArea.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
             });
         }
@@ -153,36 +87,27 @@ namespace iMessenger
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             String data = UserName + " logged out.";
-<<<<<<< HEAD
 
-            NetInteraction.SendMessage( Message.Serialize(new Message(){ Text = data }));
+            
+<<<<<<< HEAD
 =======
             
-            
-            core.SendMessage(Message.Serialize(GenerateMessage(data)));
->>>>>>> 47194f1c5e732e3a3bedd8a534751c88d8e42c47
+>>>>>>> 03283cbc3309b06644ba892b41ae2b3353974081
+            Core.SendMessage(Message.Serialize(GenerateMessage(data)));
             Environment.Exit(0x0);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-<<<<<<< HEAD
-            NetInteraction.SendMessage(Message.Serialize(GetMessage()));
-=======
             if (!String.IsNullOrEmpty(MessageBox.Text))
-                core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText())));
->>>>>>> 47194f1c5e732e3a3bedd8a534751c88d8e42c47
+                Core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText())));
         }
 
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-<<<<<<< HEAD
-                NetInteraction.SendMessage(Message.Serialize(GetMessage()));
-=======
                 SendButton_Click(sender, new RoutedEventArgs());
->>>>>>> 47194f1c5e732e3a3bedd8a534751c88d8e42c47
             }
         }
         
@@ -218,7 +143,7 @@ namespace iMessenger
             }
             else
             {
-                core.SendMessage(Message.Serialize(GenerateMessage(UserName + " change nickname to " + NickBox.Text)));
+                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " change nickname to " + NickBox.Text)));
                 UserName = NickBox.Text;
             }
         }

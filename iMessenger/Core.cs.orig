@@ -20,25 +20,30 @@ using System.Windows.Shapes;
 
 namespace iMessenger
 {
-    public  class Core
+    public class Core
     {
-        private  UdpClient receiveClient = new UdpClient(1800);
-        private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        public   MainWindow window;
+        private static UdpClient receiveClient = new UdpClient(1800);
+        private static IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        public static MainWindow window;
 
-
+        
         public Core(MainWindow window)
         {
-            //window = new MainWindow();
+<<<<<<< HEAD
             this.window = window;
+            Thread receivingThread = new Thread(ReceiveMessages);
+            receivingThread.Start();
+=======
+            window = new MainWindow();
+>>>>>>> 03283cbc3309b06644ba892b41ae2b3353974081
         }
 
-        public  void StartReceive()
+        public static void StartReceive()
         {
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
-        public  string GetUserName()
+        public static string GetUserName()
         {
             string UserName = "";
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
@@ -48,7 +53,18 @@ namespace iMessenger
             return UserName;
         }
 
-        public  void SendMessage(Byte[] data)
+        public static void SendMessage(String data)
+        {
+            if (data == null) return;   // add exception later
+
+            UdpClient sendClient = new UdpClient();
+            Byte[] message = Encoding.ASCII.GetBytes(data);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
+            sendClient.Send(message, message.Length, endPoint);
+            sendClient.Close();
+        }
+
+        public static void SendMessage(Byte[] data)
         {
             try{
                 UdpClient sendClient = new UdpClient();
@@ -60,7 +76,7 @@ namespace iMessenger
             }
         }
 
-        public  void ReceiveMessages()
+        public static void ReceiveMessages()
         {
             try
             {

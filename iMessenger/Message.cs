@@ -14,12 +14,10 @@ namespace iMessenger
         public String Text { get; set; }
         public String[] ReceiverName { get; set; } // array of user if conference, null if broadcast ( offline, online )
         public String SenderName { get; set; }
-        public DateTime Time { get; set; }
-        // status ??
-
+        
         public String getMessageString()
         {
-            return "[" + Time.ToString("hh:mm:ss") + "] " + SenderName + ": " + Text;  
+            return "[" + DateTime.Now.ToString("hh:mm:ss") + "] " + SenderName + ": " + Text;  
         }
 
         public static Message Deserialize( Byte[] buffer)
