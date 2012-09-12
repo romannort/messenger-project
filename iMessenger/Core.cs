@@ -20,17 +20,19 @@ using System.Windows.Shapes;
 
 namespace iMessenger
 {
-    public  class Core
+    public class Core
     {
         private  UdpClient receiveClient = new UdpClient(1800);
         private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
         public   MainWindow window;
+        public static String UserName { get; set; }
 
 
         public Core(MainWindow window)
         {
             //window = new MainWindow();
             this.window = window;
+            UserName = GetUserIP();
         }
 
         public  void StartReceiving()
@@ -44,9 +46,10 @@ namespace iMessenger
             return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork").ToString();
         }
 
-        public  void SendMessage(Byte[] data)
+        public void SendMessage(Message m)
         {
             try{
+                Byte[] data = Message.Serialize(m);
                 UdpClient sendClient = new UdpClient();
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
                 sendClient.Send(data, data.Length, endPoint);
@@ -66,7 +69,7 @@ namespace iMessenger
                     Message message = Message.Deserialize(receivedData);
 
                     // change later
-                    if (message.Text.Contains(" logged out.") && message.SenderName == MainWindow.UserName)
+                    if (message.Text.Contains(" logged out.") && message.SenderName == UserName)
                     {
                         break;
                     }
@@ -84,6 +87,7 @@ namespace iMessenger
             }
 
         }
+        
 
     }
 }

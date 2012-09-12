@@ -26,7 +26,7 @@ namespace iMessenger
     public partial class MainWindow : Window
     {
 
-        public static String UserName { get; set; }
+        
         public Core Core { get; set; }
 
         public MainWindow()
@@ -38,9 +38,8 @@ namespace iMessenger
         {
             try{
                 // Decrease new line margin
-                NickBox.Text = Core.GetUserIP();
-                UserName = NickBox.Text;
-                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " joined conference.", "system")));
+                NickBox.Text = Core.UserName;
+                Core.SendMessage( GenerateMessage(Core.UserName + " joined conference.", "system"));
                 Core.StartReceiving();
                 MessageBox.Focus();    
             }catch( NullReferenceException exeption){
@@ -48,8 +47,7 @@ namespace iMessenger
             }
         }
 
-        // Move to Net Classes
-
+    
         public void ShowMessage(Message message)
         {
             Dispatcher.Invoke((ThreadStart)delegate
@@ -61,15 +59,15 @@ namespace iMessenger
 
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            String data = UserName + " logged out.";
-            Core.SendMessage(Message.Serialize(GenerateMessage(data, "text")));
+            String data = Core.UserName + " logged out.";
+            Core.SendMessage(GenerateMessage(data, "text"));
             Environment.Exit(0x0);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
-                Core.SendMessage(Message.Serialize(GenerateMessage(GetMessageText(), "text")));
+                Core.SendMessage(GenerateMessage(GetMessageText(), "text"));
         }
 
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
@@ -92,16 +90,16 @@ namespace iMessenger
             return null;
         }
 
-
         private Message GenerateMessage(String data, String Type)
         {
             return new Message()
             {
-                SenderName = UserName,
+                SenderName = Core.UserName,
                 ReceiverName = null,
                 Text = data
             };
         }
+        
 
         private void NickBox_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -111,10 +109,10 @@ namespace iMessenger
         private void NicknameChanging(){
             if (!String.IsNullOrEmpty(NickBox.Text))
             {
-                Core.SendMessage(Message.Serialize(GenerateMessage(UserName + " changed nickname to " + NickBox.Text, "system")));
-                UserName = NickBox.Text;
+                Core.SendMessage(GenerateMessage(Core.UserName + " changed nickname to " + NickBox.Text, "system"));
+                Core.UserName = NickBox.Text;
             }
-            NickBox.Text = UserName;
+            NickBox.Text = Core.UserName;
         }
     }
     
