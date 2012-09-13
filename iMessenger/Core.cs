@@ -87,6 +87,28 @@ namespace iMessenger
                 window.AddAtConnectList(message.SenderName);
                 SendMessage(window.GenerateMessage("Hello!", MessageType.System));
             }
+            else if (message.Text == "Hello!" && message.Type == MessageType.System && message.SenderName != UserName)
+            {
+                window.AddAtConnectList(message.SenderName);
+                return true;
+            }
+            else if (message.Text.Contains("changed nickname to") && message.SenderName != UserName && message.Type == MessageType.System)
+            {
+                string newnick = message.Text;
+                newnick.Replace(" changed nickname to ", "");
+                newnick.Replace(message.SenderName, "");
+                window.ChangeConnectList(message.SenderName, newnick);
+                return true;
+            }
+            else if (message.Text.Contains("logged out.") && message.SenderName != UserName && message.Type == MessageType.System)
+            {
+                window.ReplaceConnectList(message.SenderName);
+            }
+            else if (message.Text.Contains("joined conference.") && message.SenderName != UserName && message.Type == MessageType.System)
+            {
+                window.AddAtConnectList(message.SenderName);
+                SendMessage(window.GenerateMessage("Hello!", MessageType.System));
+            }
             else if (message.Text == "Hello!" && message.Type == MessageType.System)
             {
                 window.AddAtConnectList(message.SenderName);

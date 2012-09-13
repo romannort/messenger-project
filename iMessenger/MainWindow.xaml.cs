@@ -140,6 +140,20 @@ namespace iMessenger
         {
             ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
         }
+
+        public void ChangeConnectList(string oldNick, string newNick)
+        {
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+                ConnectList.Items.Add(newNick);
+            });
+        }
+
+        public void ReplaceConnectList(string oldNick)
+        {
+            ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+        }
     }
     
 }
