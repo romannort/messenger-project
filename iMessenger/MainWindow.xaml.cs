@@ -93,7 +93,7 @@ namespace iMessenger
             return null;
         }
 
-        private Message GenerateMessage(String data, MessageType Type)
+        public Message GenerateMessage(String data, MessageType Type)
         {
             return new Message()
             {
@@ -117,6 +117,28 @@ namespace iMessenger
                 Core.UserName = NickBox.Text;
             }
             NickBox.Text = Core.UserName;
+        }
+
+        public void AddAtConnectList(string newNick)
+        {
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                ConnectList.Items.Add(newNick);
+            });
+        }
+
+        public void ChangeConnectList(string oldNick, string newNick)
+        {
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+                ConnectList.Items.Add(newNick);
+            });
+        }
+
+        public void ReplaceConnectList(string oldNick)
+        {
+            ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
         }
     }
     
