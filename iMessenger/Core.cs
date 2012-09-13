@@ -33,7 +33,6 @@ namespace iMessenger
             this.window = window;
             UserName = GetUserIP();
         }
-
         public  void StartReceiving()
         {
             Thread receivingThread = new Thread(ReceiveMessages);
@@ -70,7 +69,6 @@ namespace iMessenger
             {
                 Environment.Exit(0x0);
             }
-
         }
 
         private Boolean AnalyzeReceivedData(){
@@ -84,7 +82,5 @@ namespace iMessenger
             window.ShowMessage(message);
             return true;
         }
-        
-
     }
 }
