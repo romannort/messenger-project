@@ -77,25 +77,20 @@ namespace iMessenger
             Message message = Message.Deserialize(receiveClient.Receive(ref receiveEndPoint));
 
             LogHelper.WriteLog(message);
+            window.ShowMessage(message);
+
             if (message.Text.Contains("logged out.") && message.SenderName == UserName && message.Type == MessageType.System)
             {
                 return false;
             }
-            else if (message.Text.Contains("joined conference.") && message.SenderName != UserName && message.Type == MessageType.System)
+            else if (message.Text.Contains("joined conference.")  && message.Type == MessageType.System)
             {
                 window.AddAtConnectList(message.SenderName);
-                SendMessage(window.GenerateMessage("Hello!", MessageType.System));
             }
-            else if (message.Text == "Hello!" && message.Type == MessageType.System && message.SenderName != UserName)
+            else if (message.Text.Contains("changed nickname to") &&  message.Type == MessageType.System)
             {
-                window.AddAtConnectList(message.SenderName);
-                return true;
-            }
-            else if (message.Text.Contains("changed nickname to") && message.SenderName != UserName && message.Type == MessageType.System)
-            {
-                string newnick = message.Text;
-                newnick.Replace(" changed nickname to ", "");
-                newnick.Replace(message.SenderName, "");
+                String newnick = message.Text.Replace(" changed nickname to ", "").Replace(message.SenderName, "");
+                newnick = newnick.Trim();
                 window.ChangeConnectList(message.SenderName, newnick);
                 return true;
             }
@@ -103,7 +98,6 @@ namespace iMessenger
             {
                 window.ReplaceConnectList(message.SenderName);
             }
-            window.ShowMessage(message);
             
             return true;
         }
