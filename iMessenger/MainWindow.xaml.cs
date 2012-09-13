@@ -117,8 +117,10 @@ namespace iMessenger
                 Core.UserName = NickBox.Text;
             }
             NickBox.Text = Core.UserName;
-            
+               
         }
+        
+       
     }
     
 }

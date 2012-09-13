@@ -75,12 +75,16 @@ namespace iMessenger
 
             Message message = Message.Deserialize(receiveClient.Receive(ref receiveEndPoint));
 
+            LogHelper.WriteLog(message);
             if (message.Text.Contains("logged out.") && message.SenderName == UserName && message.Type == MessageType.System)
             {
                 return false;
             }
             window.ShowMessage(message);
+            
             return true;
         }
+
+        
     }
 }
