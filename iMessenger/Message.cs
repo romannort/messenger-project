@@ -42,5 +42,5 @@ namespace iMessenger
         
     }
 
-    public enum MessageType { Text = 0, System, Status }
+    public enum MessageType { Text = 0, System, Status, ChangeName }
 }
