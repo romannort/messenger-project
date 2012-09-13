@@ -23,16 +23,27 @@ namespace iMessenger
 {
     public class Core
     {
-        private  UdpClient receiveClient = new UdpClient(1800);
-        private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        private UdpClient receiveClient;
+        private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
         public   MainWindow window;
         public  String UserName { get; set; }
 
 
         public Core(MainWindow window)
         {
-            this.window = window;
-            UserName = GetUserIP();
+            try{
+                this.window = window;
+                UserName = GetUserIP();
+
+                receiveClient = new UdpClient();
+                receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                receiveClient.ExclusiveAddressUse = false;
+                receiveClient.Client.Bind(receiveEndPoint);
+                
+            }catch( SocketException e ){
+
+            }
+            
         }
         public  void StartReceiving()
         {
@@ -49,7 +60,10 @@ namespace iMessenger
         {
             try{
                 Byte[] data = Message.Serialize(m);
+                
                 UdpClient sendClient = new UdpClient();
+                sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
                 sendClient.Send(data, data.Length, endPoint);
                 sendClient.Close();
@@ -74,8 +88,13 @@ namespace iMessenger
 
         private Boolean AnalyzeReceivedData(){
 
-            Message message = Message.Deserialize(receiveClient.Receive(ref receiveEndPoint));
-
+            Message message;
+            try{
+                message = Message.Deserialize( receiveClient.Receive(ref receiveEndPoint));
+            }catch( NullReferenceException e){
+                return true;
+            }
+            
             LogHelper.WriteLog(message);
             window.ShowMessage(message);
 
@@ -86,6 +105,8 @@ namespace iMessenger
             else if (message.Text.Contains("joined conference.")  && message.Type == MessageType.System)
             {
                 window.AddAtConnectList(message.SenderName);
+                if ( message.SenderName != UserName)
+                    SendMessage(window.GenerateMessage("Hello!", MessageType.System));
             }
             else if (message.Text.Contains("changed nickname to") &&  message.Type == MessageType.System)
             {
@@ -97,6 +118,10 @@ namespace iMessenger
             else if (message.Text.Contains("logged out.") && message.SenderName != UserName && message.Type == MessageType.System)
             {
                 window.ReplaceConnectList(message.SenderName);
+            }
+            if (message.Text == "Hello!" && message.Type == MessageType.System && message.SenderName != UserName)
+            {
+                window.AddAtConnectList(message.SenderName);
             }
             
             return true;

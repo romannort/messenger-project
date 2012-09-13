@@ -18,7 +18,7 @@ namespace iMessenger
         
         public String getMessageString()
         {
-            return "[" + DateTime.Now.ToString("hh:mm:ss") + "] " + SenderName + ": " + Text;  
+            return "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + SenderName + ": " + Text;  
         }
 
         public static Message Deserialize( Byte[] buffer)

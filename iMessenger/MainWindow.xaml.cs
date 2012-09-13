@@ -37,7 +37,6 @@ namespace iMessenger
         private void Chat_Loaded(object sender, RoutedEventArgs e)
         {
             try{
-                // Decrease new line margin
                 NickBox.Text = Core.UserName;
                 Core.SendMessage( GenerateMessage(Core.UserName + " joined conference.", MessageType.System));
                 Core.StartReceiving();
@@ -123,7 +122,8 @@ namespace iMessenger
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                ConnectList.Items.Add(newNick);
+                //if (ConnectList.Items.IndexOf( newNick ) == -1 )
+                    ConnectList.Items.Add(newNick);
             });
         }
 
