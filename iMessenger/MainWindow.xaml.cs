@@ -41,8 +41,8 @@ namespace iMessenger
                 NickBox.Text = Core.UserName;
                 Core.SendMessage( GenerateMessage(Core.UserName + " joined conference.", MessageType.System));
                 Core.StartReceiving();
-                MessageBox.Focus();
-               
+                MessageBox.Focus();    
+
     
             }catch( NullReferenceException exeption){
 
@@ -93,7 +93,7 @@ namespace iMessenger
             return null;
         }
 
-        private Message GenerateMessage(String data, MessageType Type)
+        public Message GenerateMessage(String data, MessageType Type)
         {
             return new Message()
             {
@@ -111,16 +111,35 @@ namespace iMessenger
         }
         
         private void NicknameChanging(){
-            if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.UserName)
+            if (!String.IsNullOrEmpty(NickBox.Text))
             {
                 Core.SendMessage(GenerateMessage(Core.UserName + " changed nickname to " + NickBox.Text, MessageType.System));
                 Core.UserName = NickBox.Text;
             }
             NickBox.Text = Core.UserName;
-               
         }
-        
-       
+
+        public void AddAtConnectList(string newNick)
+        {
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                ConnectList.Items.Add(newNick);
+            });
+        }
+
+        public void ChangeConnectList(string oldNick, string newNick)
+        {
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+                ConnectList.Items.Add(newNick);
+            });
+        }
+
+        public void ReplaceConnectList(string oldNick)
+        {
+            ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+        }
     }
     
 }
