@@ -12,7 +12,8 @@ namespace iMessenger
 
         public static void WriteLog(Message m)
         {
-            File.AppendAllText(logFile, m.getMessageString() + "\n");
+            File.AppendAllText(logFile,  m.getMessageString() + "\n", Encoding.Default);
         }
+        
     }
 }

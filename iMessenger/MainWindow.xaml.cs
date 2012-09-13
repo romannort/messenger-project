@@ -129,11 +129,16 @@ namespace iMessenger
 
         public void ChangeConnectList(string oldNick, string newNick)
         {
-            Dispatcher.Invoke((ThreadStart)delegate
+            try{
+                Dispatcher.Invoke((ThreadStart)delegate
+                {
+                    ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+                    ConnectList.Items.Add(newNick);
+                });
+            }catch(ArgumentOutOfRangeException e)
             {
-                ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
-                ConnectList.Items.Add(newNick);
-            });
+
+            }            
         }
 
         public void ReplaceConnectList(string oldNick)
