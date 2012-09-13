@@ -129,7 +129,7 @@ namespace iMessenger
 
         public void ChangeConnectList(string oldNick, string newNick)
         {
-            try{
+            try
             {
                 Dispatcher.Invoke((ThreadStart)delegate
                 {
