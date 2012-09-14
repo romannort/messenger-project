@@ -46,10 +46,7 @@ namespace iMessenger
             return buffer;
         }
 
-        public static string GenerateSystemMessage(string text)
-        {
-            return "[" + DateTime.Now.ToString("HH:mm:ss") + "] <SYSTEM>: " + text;
-        }
+        
 
         public static void AddInRecievers(String ip)
         {

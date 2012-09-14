@@ -107,10 +107,12 @@ namespace iMessenger
 
         }
 
-        private Boolean AnalyzeReceivedData(){
+        private Boolean AnalyzeReceivedData()
+        {
 
             Message message;
-            try{
+            try
+            {
                 message = Message.Deserialize( receiveClient.Receive(ref receiveEndPoint));
             }catch( NullReferenceException e){
                 return true;
@@ -123,13 +125,13 @@ namespace iMessenger
                 case MessageType.LogOut:
                     {
                         window.ReplaceConnectList(message.SenderName);
-                        window.ShowSystemMessage(Message.GenerateSystemMessage(message.SenderName + " has left conference."));
+                        window.ShowSystemMessage(GenerateSystemMessage(message.SenderName + " has left conference."));
                         break;
                     }
                 case MessageType.Joined:
                     {
                         window.AddAtConnectList(message.SenderName);
-                        window.ShowSystemMessage(Message.GenerateSystemMessage(message.SenderName + " joined conference."));
+                        window.ShowSystemMessage(GenerateSystemMessage(message.SenderName + " joined conference."));
                         if (message.SenderName != UserName)
                         {
                             SendMessage(window.GenerateMessage("", MessageType.Echo));
@@ -140,7 +142,7 @@ namespace iMessenger
                 case MessageType.ChangeName:
                     {
                         window.ChangeConnectList(message.SenderName, message.Text);
-                        window.ShowSystemMessage(Message.GenerateSystemMessage(message.SenderName + " change nickname to " + message.Text));
+                        window.ShowSystemMessage(GenerateSystemMessage(message.SenderName + " changed nickname to " + message.Text));
                         break;
                     }
                 case MessageType.Echo:
@@ -160,6 +162,11 @@ namespace iMessenger
             }
 
             return true;
+        }
+
+        private String GenerateSystemMessage(String text)
+        {
+            return "[" + DateTime.Now.ToString("HH:mm:ss") + "] <SYSTEM>: " + text;
         }
         
 
