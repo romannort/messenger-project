@@ -47,3 +47,5 @@ iMessenger/obj
 iMessenger/Properties
 
 *.cd
+*.pdb
+*.cache

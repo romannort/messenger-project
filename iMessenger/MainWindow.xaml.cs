@@ -94,7 +94,7 @@ namespace iMessenger
             return new Message()
             {
                 SenderName = Core.UserName,
-                ReceiverName = null,
+                SenderIP = Core.UserIP,
                 Text = data,
                 Type = Type
             };
@@ -113,12 +113,12 @@ namespace iMessenger
                 {
                     Core.SendMessage(GenerateMessage(NickBox.Text, MessageType.ChangeName));
                     Core.UserName = NickBox.Text;
+                    return;
                 }
                 else
                     ShowSystemMessage("This nickname is already in use");
             }
-            else
-                NickBox.Text = Core.UserName;
+            NickBox.Text = Core.UserName;
         }
 
         public void AddAtConnectList(string newNick)
@@ -146,7 +146,10 @@ namespace iMessenger
 
         public void ReplaceConnectList(string oldNick)
         {
-            ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
+            });
         }
 
         public void ShowSystemMessage(string text)

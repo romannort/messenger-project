@@ -28,6 +28,7 @@ namespace iMessenger
         public   MainWindow window;
         public  String UserName { get; set; }
         public String UserID = System.DateTime.Now.ToString("ddHHmmss");
+        public String UserIP;
 
 
         public Core(MainWindow window)
@@ -35,6 +36,7 @@ namespace iMessenger
             try{
                 this.window = window;
                 UserName = "User#" + UserID;
+                UserIP = GetUserIP();
 
                 receiveClient = new UdpClient();
                 receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -62,15 +64,26 @@ namespace iMessenger
         {
             try{
                 Byte[] data = Message.Serialize(m);
-                
+
                 UdpClient sendClient = new UdpClient();
                 sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-                sendClient.Send(data, data.Length, endPoint);
+                if (Message.ReceiverName[0] == null)
+                {
+                    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
+                    sendClient.Send(data, data.Length, endPoint);
+                }
+                else
+                {
+                    for (int i = 0; i < Message.ReceiverName.Length; i++)
+                    {
+                        IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(Message.ReceiverName[i]), 1800);
+                        sendClient.Send(data, data.Length, endPoint);
+                    }
+                }
                 sendClient.Close();
-            }catch( NullReferenceException e){
-
+            }
+            catch( NullReferenceException e)
+            {
             }
         }
 
@@ -113,7 +126,10 @@ namespace iMessenger
                         window.AddAtConnectList(message.SenderName);
                         window.ShowSystemMessage(Message.GenerateSystemMessage(message.SenderName + " joined conference."));
                         if (message.SenderName != UserName)
+                        {
                             SendMessage(window.GenerateMessage("", MessageType.Echo));
+                            Message.AddInRecievers(message.SenderIP);
+                        }
                         break;
                     }
                 case MessageType.ChangeName:
@@ -125,7 +141,10 @@ namespace iMessenger
                 case MessageType.Echo:
                     {
                         if (message.SenderName != UserName)
+                        {
+                            Message.AddInRecievers(message.SenderIP);
                             window.AddAtConnectList(message.SenderName);
+                        }
                         break;
                     }
                 default:
