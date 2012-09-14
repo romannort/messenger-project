@@ -59,6 +59,7 @@ namespace iMessenger
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
+
         public  string GetUserIP()
         {
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
@@ -72,19 +73,19 @@ namespace iMessenger
 
                 UdpClient sendClient = new UdpClient();
                 sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                IPEndPoint endPoint = null;
                 if (Message.ReceiverName[0] == null)
                 {
-                    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-                    sendClient.Send(data, data.Length, endPoint);
+                    endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
                 }
                 else
                 {
                     for (int i = 0; i < Message.ReceiverName.Length; i++)
                     {
-                        IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(Message.ReceiverName[i]), 1800);
-                        sendClient.Send(data, data.Length, endPoint);
+                        endPoint = new IPEndPoint(IPAddress.Parse(Message.ReceiverName[i]), 1800);
                     }
                 }
+                sendClient.Send(data, data.Length, endPoint);
                 sendClient.Close();
             }
             catch( NullReferenceException e)
