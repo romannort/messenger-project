@@ -38,15 +38,20 @@ namespace iMessenger
                 UserName = "User#" + UserID;
                 UserIP = GetUserIP();
 
-                receiveClient = new UdpClient();
-                receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                receiveClient.ExclusiveAddressUse = false;
-                receiveClient.Client.Bind(receiveEndPoint);
+                ReceiverInit();
                 
             }catch( SocketException e ){
 
             }
             
+        }
+
+        private void ReceiverInit()
+        {
+            receiveClient = new UdpClient();
+            receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            receiveClient.ExclusiveAddressUse = false;
+            receiveClient.Client.Bind(receiveEndPoint);
         }
 
         public  void StartReceiving()
