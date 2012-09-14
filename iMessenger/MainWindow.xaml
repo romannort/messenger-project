@@ -19,7 +19,7 @@
             <ColumnDefinition Width="139*"/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <TextBox x:Name="NickBox" HorizontalAlignment="Left" Height="23" Margin="10,283,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" ToolTip="Your nickname" LostFocus="NickBox_LostFocus" Grid.Row="1"/>
+        <TextBox x:Name="NickBox" HorizontalAlignment="Left" Height="23" Margin="10,283,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" ToolTip="Your nickname" LostFocus="NickBox_LostFocus" Grid.Row="1" KeyDown="NickBox_KeyDown"/>
         <TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="137,283,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="279" ToolTip="Type message here" KeyDown="MessageBox_KeyDown" Grid.Row="1" Grid.ColumnSpan="2"/>
         <Button x:Name="SendButton" Content="Send" HorizontalAlignment="Left" Margin="423,283,0,0" VerticalAlignment="Top" Width="194" Click="SendButton_Click" Grid.ColumnSpan="3" Grid.Row="1" Height="22" />
         <ListBox x:Name="ConnectList" HorizontalAlignment="Left" Height="264" Margin="423,12,0,0" VerticalAlignment="Top" Width="194" Grid.ColumnSpan="3" Grid.Row="1"/>

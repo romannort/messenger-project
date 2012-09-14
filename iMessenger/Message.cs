@@ -39,8 +39,13 @@ namespace iMessenger
             
             return buffer;
         }
+
+        public static string GenerateSystemMessage(string text)
+        {
+            return "[" + DateTime.Now.ToString("HH:mm:ss") + "] <SYSTEM>: " + text;
+        }
         
     }
 
-    public enum MessageType { Text = 0, System, Status, ChangeName }
+    public enum MessageType { Text = 0, System, Status, ChangeName, Joined, Echo, LogOut }
 }

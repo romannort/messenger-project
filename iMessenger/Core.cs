@@ -27,13 +27,14 @@ namespace iMessenger
         private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
         public   MainWindow window;
         public  String UserName { get; set; }
+        public String UserID = System.DateTime.Now.ToString("ddHHmmss");
 
 
         public Core(MainWindow window)
         {
             try{
                 this.window = window;
-                UserName = GetUserIP();
+                UserName = "User#" + UserID;
 
                 receiveClient = new UdpClient();
                 receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -98,34 +99,42 @@ namespace iMessenger
             }
             
             LogHelper.WriteLog(message);
-            window.ShowMessage(message);
 
-            if (message.Text.Contains("logged out.") &&  message.Type == MessageType.System)
+            switch (message.Type)
             {
-                window.ReplaceConnectList(message.SenderName);
-                return false;
+                case MessageType.LogOut:
+                    {
+                        window.ReplaceConnectList(message.SenderName);
+                        window.ShowSystemMessage(Message.GenerateSystemMessage(message.SenderName + " has left conference."));
+                        break;
+                    }
+                case MessageType.Joined:
+                    {
+                        window.AddAtConnectList(message.SenderName);
+                        window.ShowSystemMessage(Message.GenerateSystemMessage(message.SenderName + " joined conference."));
+                        if (message.SenderName != UserName)
+                            SendMessage(window.GenerateMessage("", MessageType.Echo));
+                        break;
+                    }
+                case MessageType.ChangeName:
+                    {
+                        window.ChangeConnectList(message.SenderName, message.Text);
+                        window.ShowSystemMessage(Message.GenerateSystemMessage(message.SenderName + " change nickname to " + message.Text));
+                        break;
+                    }
+                case MessageType.Echo:
+                    {
+                        if (message.SenderName != UserName)
+                            window.AddAtConnectList(message.SenderName);
+                        break;
+                    }
+                default:
+                    {
+                        window.ShowMessage(message);
+                        break;
+                    }
             }
-            else if (message.Text.Contains("joined conference.") &&  message.Type == MessageType.System)
-            {
-                window.AddAtConnectList(message.SenderName);
-                if ( message.SenderName != UserName)
-                    SendMessage(window.GenerateMessage("Hello!", MessageType.System));
-            }
-            else if (message.Text.Contains("changed nickname to") &&  message.Type == MessageType.System)
-            {
-                String newnick = message.Text.Replace(" changed nickname to ", "").Replace(message.SenderName, "");
-                newnick = newnick.Trim();
-                window.ChangeConnectList(message.SenderName, newnick);
-                return true;
-            }
-            else if (message.Text.Contains("logged out.") && message.SenderName != UserName && message.Type == MessageType.System)
-            {
-                window.ReplaceConnectList(message.SenderName);
-            }
-            if (message.Text == "Hello!" && message.Type == MessageType.System && message.SenderName != UserName)
-            {
-                window.AddAtConnectList(message.SenderName);
-            }
+
             return true;
         }
         

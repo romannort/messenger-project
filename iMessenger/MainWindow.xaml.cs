@@ -38,7 +38,7 @@ namespace iMessenger
         {
             try{
                 NickBox.Text = Core.UserName;
-                Core.SendMessage( GenerateMessage(Core.UserName + " joined conference.", MessageType.System));
+                Core.SendMessage( GenerateMessage("", MessageType.Joined));
                 Core.StartReceiving();
                 MessageBox.Focus();    
 
@@ -61,8 +61,7 @@ namespace iMessenger
 
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            String data = Core.UserName + " logged out.";
-            Core.SendMessage(GenerateMessage(data, MessageType.Text));
+            Core.SendMessage(GenerateMessage("", MessageType.LogOut));
             Environment.Exit(0x0);
         }
 
@@ -75,9 +74,7 @@ namespace iMessenger
         private void MessageBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-            {
                 SendButton_Click(sender, new RoutedEventArgs());
-            }
         }
         
         private String GetMessageText()
@@ -110,20 +107,25 @@ namespace iMessenger
         }
         
         private void NicknameChanging(){
-            if (!String.IsNullOrEmpty(NickBox.Text) &&NickBox.Text != Core.UserName)
+            if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.UserName)
             {
-                Core.SendMessage(GenerateMessage(Core.UserName + " changed nickname to " + NickBox.Text, MessageType.System));
-                Core.UserName = NickBox.Text;
+                if (ConnectList.Items.IndexOf(NickBox.Text) == -1)
+                {
+                    Core.SendMessage(GenerateMessage(NickBox.Text, MessageType.ChangeName));
+                    Core.UserName = NickBox.Text;
+                }
+                else
+                    ShowSystemMessage("This nickname is already in use");
             }
-            NickBox.Text = Core.UserName;
+            else
+                NickBox.Text = Core.UserName;
         }
 
         public void AddAtConnectList(string newNick)
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                //if (ConnectList.Items.IndexOf( newNick ) == -1 )
-                    ConnectList.Items.Add(newNick);
+                ConnectList.Items.Add(newNick);
             });
         }
 
@@ -146,6 +148,26 @@ namespace iMessenger
         {
             ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
         }
+
+        public void ShowSystemMessage(string text)
+        {
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                ChatArea.Document.Blocks.Add(new Paragraph(new Run(text)));
+                ChatArea.Document.Blocks.LastBlock.FontStyle = FontStyles.Italic;
+                ChatArea.ScrollToEnd();
+            });
+        }
+
+        private void NickBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                NicknameChanging();
+                MessageBox.Focus();
+            }
+        }
+
     }
     
 }
