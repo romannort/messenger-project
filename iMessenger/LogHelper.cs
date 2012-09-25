@@ -8,7 +8,7 @@ namespace iMessenger
 {
     public static class LogHelper
     {
-        static String logFile = "messages.log";
+        const String logFile = "messages.log";
 
         public static void WriteLog(Message m)
         {

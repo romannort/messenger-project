@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Net;
 
 namespace iMessenger
 {
@@ -12,19 +13,34 @@ namespace iMessenger
     public class Message
     {
         public String Text { get; set; }
-        public static String[] ReceiverName; // array of user if conference, null if broadcast ( offline, online )
         public String SenderName { get; set; }
-        public String SenderIP { get; set; }
+        public IPAddress SenderIP { get; set; }
+        public List<String> Receivers { get; set; }
         public MessageType Type { get; set; }    
         
         public Message()
         {
-            ReceiverName = new String[1];
         }
 
         public String getMessageString()
         {
-            return "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + SenderName + ": " + Text;  
+
+            String messageString = "[" + DateTime.Now.ToString("HH:mm:ss") + "] ";
+            switch (Type)
+            {
+                case MessageType.Text:
+                    return messageString + SenderName + ": " + Text;
+                case MessageType.Joined:
+                    return  messageString + " <SYSTEM>: " + SenderName + " joined conference";
+                case MessageType.LogOut:
+                    return messageString  + " <SYSTEM>: " + SenderName + " has left conference";
+                case MessageType.ChangeName:
+                    return messageString + " <SYSTEM>: " + SenderName + " changed nickname to " + Text;
+                case MessageType.Echo:
+                    return messageString + " <SYSTEM>: Echo from " + SenderName;
+                default:
+                    return "ERROR!!!";
+            }
         }
 
         public static Message Deserialize( Byte[] buffer)
@@ -44,14 +60,6 @@ namespace iMessenger
             stream.Close();
             
             return buffer;
-        }
-
-        
-
-        public static void AddInRecievers(String ip)
-        {
-            Array.Resize(ref ReceiverName, ReceiverName.Length + 1);
-            ReceiverName[ReceiverName.Length - 1] = ip;
         }
     }
 

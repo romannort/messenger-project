@@ -27,43 +27,40 @@ namespace iMessenger
         private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
         public   MainWindow window;
         public  String UserName { get; set; }
-        public String UserID = System.DateTime.Now.ToString("ddHHmmss");
-        public String UserIP;
+        public IPAddress UserIP;
 
 
         public Core(MainWindow window)
         {
             try{
                 this.window = window;
-                UserName = "User#" + UserID;
+                UserName = "User#" + System.DateTime.Now.ToString("ddHHmmss");
                 UserIP = GetUserIP();
 
-                ReceiverInit();
-                
+                ConfigureReceiver();
+                StartReceiving();
             }catch( SocketException e ){
 
             }
             
         }
 
-        private void ReceiverInit()
+        private void ConfigureReceiver()
         {
             receiveClient = new UdpClient();
             receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             receiveClient.ExclusiveAddressUse = false;
             receiveClient.Client.Bind(receiveEndPoint);
         }
-
-        public  void StartReceiving()
+        private void StartReceiving()
         {
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
-
-        public  string GetUserIP()
+        public IPAddress GetUserIP()
         {
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
-            return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork").ToString();
+            return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork");
         }
 
         public void SendMessage(Message m)
@@ -73,18 +70,7 @@ namespace iMessenger
 
                 UdpClient sendClient = new UdpClient();
                 sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                IPEndPoint endPoint = null;
-                if (Message.ReceiverName[0] == null)
-                {
-                    endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-                }
-                else
-                {
-                    for (int i = 0; i < Message.ReceiverName.Length; i++)
-                    {
-                        endPoint = new IPEndPoint(IPAddress.Parse(Message.ReceiverName[i]), 1800);
-                    }
-                }
+                IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
                 sendClient.Send(data, data.Length, endPoint);
                 sendClient.Close();
             }
@@ -108,68 +94,53 @@ namespace iMessenger
 
         }
 
-        private Boolean AnalyzeReceivedData()
-        {
+        private Boolean AnalyzeReceivedData(){
 
             Message message;
-            try
-            {
+            try{
                 message = Message.Deserialize( receiveClient.Receive(ref receiveEndPoint));
             }catch( NullReferenceException e){
                 return true;
             }
-            
-            LogHelper.WriteLog(message);
+
+            //LogHelper.WriteLog(message);
 
             switch (message.Type)
             {
                 case MessageType.LogOut:
                     {
                         window.ReplaceConnectList(message.SenderName);
-                        window.ShowSystemMessage(GenerateSystemMessage(message.SenderName + " has left conference."));
                         break;
                     }
                 case MessageType.Joined:
                     {
-                        window.AddAtConnectList(message.SenderName);
-                        window.ShowSystemMessage(GenerateSystemMessage(message.SenderName + " joined conference."));
+                        window.AddAtConnectList(message.SenderName, false);
                         if (message.SenderName != UserName)
-                        {
                             SendMessage(window.GenerateMessage("", MessageType.Echo));
-                            Message.AddInRecievers(message.SenderIP);
-                        }
                         break;
                     }
                 case MessageType.ChangeName:
                     {
                         window.ChangeConnectList(message.SenderName, message.Text);
-                        window.ShowSystemMessage(GenerateSystemMessage(message.SenderName + " changed nickname to " + message.Text));
                         break;
                     }
                 case MessageType.Echo:
                     {
                         if (message.SenderName != UserName)
+                            window.AddAtConnectList(message.SenderName, false);
+                        return true;
+                    }
+                case MessageType.Text:
+                    {
+                        if (message.Receivers.Contains(UserName) == false)
                         {
-                            Message.AddInRecievers(message.SenderIP);
-                            window.AddAtConnectList(message.SenderName);
+                            return true;
                         }
                         break;
                     }
-                default:
-                    {
-                        window.ShowMessage(message);
-                        break;
-                    }
             }
-
+            window.ShowMessage(message);
             return true;
-        }
-
-        private String GenerateSystemMessage(String text)
-        {
-            return "[" + DateTime.Now.ToString("HH:mm:ss") + "] <SYSTEM>: " + text;
-        }
-        
-
+        }        
     }
 }

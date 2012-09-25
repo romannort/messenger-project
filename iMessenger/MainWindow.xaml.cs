@@ -39,7 +39,7 @@ namespace iMessenger
             try{
                 NickBox.Text = Core.UserName;
                 Core.SendMessage( GenerateMessage("", MessageType.Joined));
-                Core.StartReceiving();
+                
                 MessageBox.Focus();    
 
     
@@ -51,14 +51,21 @@ namespace iMessenger
     
         public void ShowMessage(Message message)
         {
-            Dispatcher.Invoke((ThreadStart)delegate
-            {
-                ChatArea.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                ChatArea.ScrollToEnd();
-            });
+            try{
+                Dispatcher.Invoke((ThreadStart)delegate
+                {
+                    Run run = new Run(message.getMessageString());
+                    if (message.Type != MessageType.Text)
+                        run.Foreground = Brushes.DarkGreen;
+                    ChatArea.Document.Blocks.Add(new Paragraph(run));
+                    ChatArea.ScrollToEnd();
+                });
+            }catch( NullReferenceException e){
+
+            }
+            
         }
        
-
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Core.SendMessage(GenerateMessage("", MessageType.LogOut));
@@ -96,36 +103,79 @@ namespace iMessenger
                 SenderName = Core.UserName,
                 SenderIP = Core.UserIP,
                 Text = data,
-                Type = Type
+                Type = Type,
+                Receivers = GetReceiversList()
             };
         }
         
-
         private void NickBox_LostFocus(object sender, RoutedEventArgs e)
         {
             NicknameChanging();
         }
         
-        private void NicknameChanging(){
+        private void NicknameChanging()
+        {
             if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.UserName)
             {
-                if (ConnectList.Items.IndexOf(NickBox.Text) == -1)
+                CheckBox item = new CheckBox();
+                bool flag = true;
+                for (int i = 0; i < ConnectList.Items.Count; i++)
+                {
+                    item = (CheckBox)ConnectList.Items[i];
+                    if (item.Content.ToString() == NickBox.Text)
+                    {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag)
                 {
                     Core.SendMessage(GenerateMessage(NickBox.Text, MessageType.ChangeName));
                     Core.UserName = NickBox.Text;
                     return;
                 }
                 else
-                    ShowSystemMessage("This nickname is already in use");
+                {
+                    Dispatcher.Invoke((ThreadStart)delegate
+                    {
+                        Run run = new Run("This nickname is already in use!");
+                        run.Foreground = Brushes.Red;
+                        ChatArea.Document.Blocks.Add(new Paragraph(run));
+                        ChatArea.ScrollToEnd();
+                    });
+                }
             }
             NickBox.Text = Core.UserName;
         }
 
-        public void AddAtConnectList(string newNick)
+        public void AddAtConnectList(string newNick, bool isMuted)
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                ConnectList.Items.Add(newNick);
+                CheckBox item = new CheckBox();
+                bool flag = true;
+                for (int i = 0; i < ConnectList.Items.Count; i++)
+                {
+                    item = (CheckBox)ConnectList.Items[i];
+                    if (item.Content.ToString() == newNick)
+                    {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag)
+                {
+                    item = new CheckBox();
+                    item.Content = newNick;
+                    item.IsChecked = !isMuted;
+                    byte[] RGB = new byte[3]; 
+                    Random r = new Random();
+                    r.NextBytes(RGB);
+                    for(int i=0; i<3; i++)
+                        RGB[i] = (byte)(RGB[i] % 128);
+                    item.Foreground = new SolidColorBrush(Color.FromRgb(RGB[0], RGB[1], RGB[2]));
+                    ConnectList.Items.Add(item);
+                }
             });
         }
 
@@ -135,8 +185,18 @@ namespace iMessenger
             {
                 Dispatcher.Invoke((ThreadStart)delegate
                 {
-                    ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
-                    ConnectList.Items.Add(newNick);
+                    CheckBox item;
+                    for (int i = 0; i < ConnectList.Items.Count; i++)
+                    {
+                        item = (CheckBox)ConnectList.Items[i];
+                        if (item.Content.ToString() == oldNick)
+                        {
+                            ConnectList.Items.Remove(item);
+                            item.Content = newNick;
+                            ConnectList.Items.Insert(i, item); 
+                            break;
+                        }
+                    }
                 });
             }catch(ArgumentOutOfRangeException e)
             {
@@ -148,17 +208,16 @@ namespace iMessenger
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                ConnectList.Items.RemoveAt(ConnectList.Items.IndexOf(oldNick));
-            });
-        }
-
-        public void ShowSystemMessage(string text)
-        {
-            Dispatcher.Invoke((ThreadStart)delegate
-            {
-                ChatArea.Document.Blocks.Add(new Paragraph(new Run(text)));
-                ChatArea.Document.Blocks.LastBlock.FontStyle = FontStyles.Italic;
-                ChatArea.ScrollToEnd();
+                CheckBox item;
+                for (int i = 0; i < ConnectList.Items.Count; i++)
+                {
+                    item = (CheckBox)ConnectList.Items[i];
+                    if (item.Content.ToString() == oldNick)
+                    {
+                        ConnectList.Items.Remove(item);
+                        break;
+                    }
+                }
             });
         }
 
@@ -171,6 +230,21 @@ namespace iMessenger
             }
         }
 
+        private List<String> GetReceiversList()
+        {
+            List<String> receiversList = new List<String>();
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                foreach (CheckBox a in ConnectList.Items)
+                {
+                    if (a.IsChecked == true)
+                    {
+                        receiversList.Add(a.Content.ToString());
+                    }
+                }   
+            });
+            return receiversList;
+        }
     }
     
 }
