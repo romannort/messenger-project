@@ -38,6 +38,8 @@ namespace iMessenger
                     return messageString + " <SYSTEM>: " + SenderName + " changed nickname to " + Text;
                 case MessageType.Echo:
                     return messageString + " <SYSTEM>: Echo from " + SenderName;
+                case MessageType.Conference:
+                    return messageString + " <SYSTEM>: Test-test-test Conference";
                 default:
                     return "ERROR!!!";
             }
@@ -63,5 +65,5 @@ namespace iMessenger
         }
     }
 
-    public enum MessageType { Text, System, Status, ChangeName, Joined, Echo, LogOut }
+    public enum MessageType { Text, System, Conference, ChangeName, Joined, Echo, LogOut }
 }

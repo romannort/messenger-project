@@ -28,7 +28,7 @@ namespace iMessenger
         public   MainWindow window;
         public  String UserName { get; set; }
         public IPAddress UserIP;
-
+        //private event EventHandler<MsgReceiveEventArgs> NewMessage;
 
         public Core(MainWindow window)
         {
@@ -36,13 +36,13 @@ namespace iMessenger
                 this.window = window;
                 UserName = "User#" + System.DateTime.Now.ToString("ddHHmmss");
                 UserIP = GetUserIP();
+                MessageManager.NewMessage += OnMessageReceive;
 
                 ConfigureReceiver();
                 StartReceiving();
             }catch( SocketException e ){
 
             }
-            
         }
 
         private void ConfigureReceiver()
@@ -104,43 +104,50 @@ namespace iMessenger
             }
 
             //LogHelper.WriteLog(message);
+            //EventHandler<MsgReceiveEventArgs> temp = Interlocked.CompareExchange(ref NewMessage, null, null);
+            //if (temp != null) temp(this, new MsgReceiveEventArgs(message));
+            MessageManager.OnNewMessage(new MsgReceiveEventArgs(message));
 
-            switch (message.Type)
+            return true;
+        }
+
+        private void OnMessageReceive(object sender, MsgReceiveEventArgs e)
+        {
+            switch (e.Message.Type)
             {
                 case MessageType.LogOut:
                     {
-                        window.ReplaceConnectList(message.SenderName);
+                        window.ReplaceConnectList(e.Message.SenderName);
                         break;
                     }
                 case MessageType.Joined:
                     {
-                        window.AddAtConnectList(message.SenderName, false);
-                        if (message.SenderName != UserName)
+                        window.AddAtConnectList(e.Message.SenderName, false);
+                        if (e.Message.SenderName != UserName)
                             SendMessage(window.GenerateMessage("", MessageType.Echo));
                         break;
                     }
                 case MessageType.ChangeName:
                     {
-                        window.ChangeConnectList(message.SenderName, message.Text);
+                        window.ChangeConnectList(e.Message.SenderName, e.Message.Text);
                         break;
                     }
                 case MessageType.Echo:
                     {
-                        if (message.SenderName != UserName)
-                            window.AddAtConnectList(message.SenderName, false);
-                        return true;
+                        if (e.Message.SenderName != UserName)
+                            window.AddAtConnectList(e.Message.SenderName, false);
+                        return;
                     }
                 case MessageType.Text:
                     {
-                        if (message.Receivers.Contains(UserName) == false)
+                        if (e.Message.Receivers.Contains(UserName) == false)
                         {
-                            return true;
+                            return;
                         }
                         break;
                     }
             }
-            window.ShowMessage(message);
-            return true;
-        }        
+            window.ShowMessage(e.Message);
+        }
     }
 }

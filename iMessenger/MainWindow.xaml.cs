@@ -56,9 +56,19 @@ namespace iMessenger
                 {
                     Run run = new Run(message.getMessageString());
                     if (message.Type != MessageType.Text)
+                    {
                         run.Foreground = Brushes.DarkGreen;
-                    ChatArea.Document.Blocks.Add(new Paragraph(run));
-                    ChatArea.ScrollToEnd();
+                        run.FontStyle = FontStyles.Italic;
+                    }
+
+                    switch (message.Type)
+                    {
+
+                    }
+
+                    RichTextBox rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[Tabs.SelectedIndex]).Content).Children[1];
+                    rtb.Document.Blocks.Add(new Paragraph(run));
+                    rtb.ScrollToEnd();
                 });
             }catch( NullReferenceException e){
 
@@ -119,9 +129,9 @@ namespace iMessenger
             {
                 CheckBox item = new CheckBox();
                 bool flag = true;
-                for (int i = 0; i < ConnectList.Items.Count; i++)
+                for (int i = 0; i < ConnectList0.Items.Count; i++)
                 {
-                    item = (CheckBox)ConnectList.Items[i];
+                    item = (CheckBox)ConnectList0.Items[i];
                     if (item.Content.ToString() == NickBox.Text)
                     {
                         flag = false;
@@ -140,8 +150,8 @@ namespace iMessenger
                     {
                         Run run = new Run("This nickname is already in use!");
                         run.Foreground = Brushes.Red;
-                        ChatArea.Document.Blocks.Add(new Paragraph(run));
-                        ChatArea.ScrollToEnd();
+                        ChatArea0.Document.Blocks.Add(new Paragraph(run));
+                        ChatArea0.ScrollToEnd();
                     });
                 }
             }
@@ -154,9 +164,9 @@ namespace iMessenger
             {
                 CheckBox item = new CheckBox();
                 bool flag = true;
-                for (int i = 0; i < ConnectList.Items.Count; i++)
+                for (int i = 0; i < ConnectList0.Items.Count; i++)
                 {
-                    item = (CheckBox)ConnectList.Items[i];
+                    item = (CheckBox)ConnectList0.Items[i];
                     if (item.Content.ToString() == newNick)
                     {
                         flag = false;
@@ -174,7 +184,9 @@ namespace iMessenger
                     for(int i=0; i<3; i++)
                         RGB[i] = (byte)(RGB[i] % 128);
                     item.Foreground = new SolidColorBrush(Color.FromRgb(RGB[0], RGB[1], RGB[2]));
-                    ConnectList.Items.Add(item);
+                    if (newNick == Core.UserName)
+                        item.IsEnabled = false;
+                    ConnectList0.Items.Add(item);
                 }
             });
         }
@@ -186,14 +198,14 @@ namespace iMessenger
                 Dispatcher.Invoke((ThreadStart)delegate
                 {
                     CheckBox item;
-                    for (int i = 0; i < ConnectList.Items.Count; i++)
+                    for (int i = 0; i < ConnectList0.Items.Count; i++)
                     {
-                        item = (CheckBox)ConnectList.Items[i];
+                        item = (CheckBox)ConnectList0.Items[i];
                         if (item.Content.ToString() == oldNick)
                         {
-                            ConnectList.Items.Remove(item);
+                            ConnectList0.Items.Remove(item);
                             item.Content = newNick;
-                            ConnectList.Items.Insert(i, item); 
+                            ConnectList0.Items.Insert(i, item); 
                             break;
                         }
                     }
@@ -209,12 +221,12 @@ namespace iMessenger
             Dispatcher.Invoke((ThreadStart)delegate
             {
                 CheckBox item;
-                for (int i = 0; i < ConnectList.Items.Count; i++)
+                for (int i = 0; i < ConnectList0.Items.Count; i++)
                 {
-                    item = (CheckBox)ConnectList.Items[i];
+                    item = (CheckBox)ConnectList0.Items[i];
                     if (item.Content.ToString() == oldNick)
                     {
-                        ConnectList.Items.Remove(item);
+                        ConnectList0.Items.Remove(item);
                         break;
                     }
                 }
@@ -235,7 +247,7 @@ namespace iMessenger
             List<String> receiversList = new List<String>();
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                foreach (CheckBox a in ConnectList.Items)
+                foreach (CheckBox a in ConnectList0.Items)
                 {
                     if (a.IsChecked == true)
                     {
@@ -244,6 +256,60 @@ namespace iMessenger
                 }   
             });
             return receiversList;
+        }
+
+        private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Tabs.SelectedIndex == Tabs.Items.Count - 1)
+            {
+                TabItem tabItem = new TabItem();
+                tabItem.Background = ((TabItem)Tabs.Items[0]).Background;
+                tabItem.Foreground = ((TabItem)Tabs.Items[0]).Foreground;
+                Grid grid = new Grid();
+                grid.Margin = new Thickness(0, -1, 0, 26);
+                RichTextBox rtb = new RichTextBox();
+                rtb.Name = "ChatArea" + (Tabs.Items.Count - 1).ToString();
+                rtb.HorizontalAlignment = HorizontalAlignment.Left;
+                rtb.Margin = new Thickness(0, 0, 0, -24);
+                rtb.Width = 417;
+                rtb.AllowDrop = false;
+                rtb.IsReadOnly = true;
+                rtb.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                rtb.AcceptsReturn = false;
+                rtb.IsUndoEnabled = false;
+                
+                ListBox lb = new ListBox();
+                lb.Name = "ConnectList" + (Tabs.Items.Count - 1).ToString();
+                lb.HorizontalAlignment = HorizontalAlignment.Left;
+                lb.Margin = new Thickness(424, 0, 0, -24);
+                lb.Width = 204;
+                CheckBox cb;
+                for (int i = 0; i < ConnectList0.Items.Count; i++)
+                {
+                    cb = new CheckBox();
+                    cb.Content = ((CheckBox)ConnectList0.Items[i]).Content;
+                    cb.Foreground = ((CheckBox)ConnectList0.Items[i]).Foreground;
+                    if(i == 0) 
+                    {
+                        cb.IsChecked = true;
+                        cb.IsEnabled = false;
+                    }
+                    lb.Items.Add(cb);
+                }
+                grid.Children.Add(lb);
+                grid.Children.Add(rtb);
+                tabItem.Content = grid;
+                tabItem.Tag = System.DateTime.Now.ToString("ddHHmmss");
+                tabItem.Header = "Conference #" + tabItem.Tag;
+                Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
+                Tabs.SelectedIndex = Tabs.Items.Count - 2;
+                Tabs.SelectedItem = (TabItem)Tabs.Items[Tabs.Items.Count - 2];
+            }
+        }
+
+        private void ConnectList_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+
         }
     }
     
