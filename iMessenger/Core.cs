@@ -104,8 +104,6 @@ namespace iMessenger
             }
 
             //LogHelper.WriteLog(message);
-            //EventHandler<MsgReceiveEventArgs> temp = Interlocked.CompareExchange(ref NewMessage, null, null);
-            //if (temp != null) temp(this, new MsgReceiveEventArgs(message));
             MessageManager.OnNewMessage(new MsgReceiveEventArgs(message));
 
             return true;
@@ -117,37 +115,38 @@ namespace iMessenger
             {
                 case MessageType.LogOut:
                     {
+                        window.ShowMessage(e.Message);
                         window.ReplaceConnectList(e.Message.SenderName);
                         break;
                     }
                 case MessageType.Joined:
                     {
-                        window.AddAtConnectList(e.Message.SenderName, false);
+                        window.AddAtConnectList(e.Message.SenderName);
                         if (e.Message.SenderName != UserName)
                             SendMessage(window.GenerateMessage("", MessageType.Echo));
+                        window.ShowMessage(e.Message);
                         break;
                     }
                 case MessageType.ChangeName:
                     {
+                        window.ShowMessage(e.Message);
                         window.ChangeConnectList(e.Message.SenderName, e.Message.Text);
                         break;
                     }
                 case MessageType.Echo:
                     {
                         if (e.Message.SenderName != UserName)
-                            window.AddAtConnectList(e.Message.SenderName, false);
+                            window.AddAtConnectList(e.Message.SenderName);
                         return;
                     }
-                case MessageType.Text:
+                default:
                     {
                         if (e.Message.Receivers.Contains(UserName) == false)
-                        {
                             return;
-                        }
+                        window.ShowMessage(e.Message);
                         break;
                     }
             }
-            window.ShowMessage(e.Message);
         }
     }
 }

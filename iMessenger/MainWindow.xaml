@@ -42,7 +42,7 @@
                             <GradientStop Color="Maroon" Offset="1"/>
                         </LinearGradientBrush>
                     </Grid.Background>
-                    <ListBox x:Name="ConnectList0" HorizontalAlignment="Left" Margin="424,0,0,-24" Width="204" MouseRightButtonDown="ConnectList_MouseRightButtonDown"/>
+                    <ListBox x:Name="ConnectList0" HorizontalAlignment="Left" Margin="424,0,0,-24" Width="204"/>
                     <RichTextBox x:Name="ChatArea0" HorizontalAlignment="Left" Margin="0,0,0,-24" Width="417" AllowDrop="False" IsReadOnly="True" VerticalScrollBarVisibility="Auto" AcceptsReturn="False" IsUndoEnabled="False">
                         <RichTextBox.Resources>
                             <Style TargetType="{x:Type Paragraph}">

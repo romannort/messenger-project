@@ -28,7 +28,7 @@ namespace iMessenger
             String messageString = "[" + DateTime.Now.ToString("HH:mm:ss") + "] ";
             switch (Type)
             {
-                case MessageType.Text:
+                case MessageType.Common:
                     return messageString + SenderName + ": " + Text;
                 case MessageType.Joined:
                     return  messageString + " <SYSTEM>: " + SenderName + " joined conference";
@@ -39,7 +39,7 @@ namespace iMessenger
                 case MessageType.Echo:
                     return messageString + " <SYSTEM>: Echo from " + SenderName;
                 case MessageType.Conference:
-                    return messageString + " <SYSTEM>: Test-test-test Conference";
+                    return messageString + SenderName + ": " + Text.Replace(Text.Remove(8), "");
                 default:
                     return "ERROR!!!";
             }
@@ -65,5 +65,5 @@ namespace iMessenger
         }
     }
 
-    public enum MessageType { Text, System, Conference, ChangeName, Joined, Echo, LogOut }
+    public enum MessageType { Common, System, Conference, ChangeName, Joined, Echo, LogOut }
 }
