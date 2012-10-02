@@ -37,7 +37,7 @@ namespace iMessenger
         {
             try{
                 NickBox.Text = Core.UserName;
-                Core.SendMessage( GenerateMessage("", MessageType.Joined));
+                Core.SendMessage( GenerateMessage("", MessageType.JoinCommon));
                 MessageBox.Focus();    
     
             }catch( NullReferenceException exeption){
@@ -65,10 +65,9 @@ namespace iMessenger
                             }
                         case MessageType.Conference:
                             {
-                                String ToCompare = message.Text.Remove(8);
-                                for (int i = 1; i < Tabs.Items.Count-1; i++)
+                                for (int i = 1; i < Tabs.Items.Count - 1; i++)
                                 {
-                                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == ToCompare)
+                                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.ConferenceNum)
                                     {
                                         rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[1];
                                         rtb.Document.Blocks.Add(new Paragraph(new Run(mText)));
@@ -79,9 +78,26 @@ namespace iMessenger
 
                                 CreateTab(message);
                                 
-                                rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[Tabs.Items.Count-2]).Content).Children[1];
+                                rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[Tabs.Items.Count - 2]).Content).Children[1];
                                 rtb.Document.Blocks.Add(new Paragraph(new Run(mText)));
                                 rtb.ScrollToEnd();
+                                break;
+                            }
+                        case MessageType.LeaveConference:
+                            {
+                                for (int i = 1; i < Tabs.Items.Count - 1; i++)
+                                {
+                                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.Text)
+                                    {
+                                        run = new Run(mText);
+                                        run.Foreground = Brushes.DarkGreen;
+                                        run.FontStyle = FontStyles.Italic;
+                                        rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[1];
+                                        rtb.Document.Blocks.Add(new Paragraph(run));
+                                        rtb.ScrollToEnd();
+                                        return;
+                                    }
+                                }
                                 break;
                             }
                         default:
@@ -115,7 +131,7 @@ namespace iMessenger
 
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Core.SendMessage(GenerateMessage("", MessageType.LogOut));
+            Core.SendMessage(GenerateMessage("", MessageType.LeaveCommon));
             Environment.Exit(0x0);
         }
 
@@ -126,7 +142,7 @@ namespace iMessenger
                 if(Tabs.SelectedIndex == 0)
                     Core.SendMessage(GenerateMessage(GetMessageText(), MessageType.Common));
                 else
-                    Core.SendMessage(GenerateMessage(((TabItem)Tabs.SelectedItem).Tag.ToString()+GetMessageText(), MessageType.Conference));
+                    Core.SendMessage(GenerateMessage(GetMessageText(), MessageType.Conference));
             }
         }
 
@@ -156,7 +172,8 @@ namespace iMessenger
                 SenderIP = Core.UserIP,
                 Text = data,
                 Type = Type,
-                Receivers = GetReceiversList()
+                Receivers = GetReceiversList(),
+                ConferenceNum = GetConferenceNum()
             };
         }
         
@@ -276,7 +293,6 @@ namespace iMessenger
                         if (item.Content.ToString() == oldNick)
                         {
                             ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Remove(item);
-                            ConnectList0.Items.Remove(item);
                             break;
                         }
                     }
@@ -307,6 +323,16 @@ namespace iMessenger
                 }   
             });
             return receiversList;
+        }
+
+        private String GetConferenceNum()
+        {
+            String res = "";
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                res = ((TabItem)Tabs.SelectedItem).Tag.ToString();
+            });
+            return res;
         }
 
         private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -364,7 +390,93 @@ namespace iMessenger
                 Tag = message == null ? DateTime.Now.ToString("ddHHmmss") : message.Text.Remove(8)
             };
             tabItem.Header = "Conference#" + tabItem.Tag;
+            tabItem.Name = "TabItem" + (Tabs.Items.Count - 1).ToString();
+            tabItem.ContextMenu = SetPopupMenu(tabItem);
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
+
+        private ContextMenu SetPopupMenu(TabItem tabItem)
+        {
+            ContextMenu PopupMenu = new ContextMenu();
+            PopupMenu.Foreground = new SolidColorBrush(Colors.DarkRed);
+
+            MenuItem Rename = new MenuItem();
+            Rename.IsCheckable = false;
+            Rename.Header = "Rename";
+            Rename.Click += new RoutedEventHandler(ContextMenu_OnRenameClick);
+            PopupMenu.Items.Add(Rename);
+
+            MenuItem Close = new MenuItem();
+            Close.IsCheckable = false;
+            Close.Header = "Close";
+            Close.Click += new RoutedEventHandler(ContextMenu_OnCloseClick);
+            PopupMenu.Items.Add(Close);
+            PopupMenu.Name = "PopupMenu" + tabItem.Name.Replace("TabItem", "");
+
+            return PopupMenu;
+        }
+
+        private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
+        {
+            return;
+        }
+
+        private void ContextMenu_OnCloseClick(object menuItem, RoutedEventArgs e)
+        {
+            TabItem ToDelete = null;
+            for (int i = 1; i < Tabs.Items.Count - 1; i++)
+                if (((TabItem)Tabs.Items[i]).Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
+                {
+                    ToDelete = (TabItem)Tabs.Items[i];
+                    break;
+                }
+            Core.SendMessage(GenerateMessage(ToDelete.Tag.ToString(), MessageType.LeaveConference));
+            Tabs.SelectedItem = Tabs.Items[0];
+            Tabs.Items.Remove(ToDelete);
+            return;
+        }
+
+        public void UncheckInConf(Message m)
+        {
+            CheckBox item;
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                for (int i = 1; i < Tabs.Items.Count - 1; i++)
+                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == m.Text)
+                    {
+                        for (int j = 0; j < ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Count; j++)
+                        {
+                            item = (CheckBox)((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items[j];
+                            if (item.Content.ToString() == m.SenderName)
+                            {
+                                Core.SendMessage(GenerateMessage("", MessageType.LeaveConference));
+                                item.IsChecked = false;
+                                return;
+                            }
+                        }
+                    }
+            });
+        }
+
+        public void CheckInConf(Message m)
+        {
+            CheckBox item;
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                for (int i = 1; i < Tabs.Items.Count - 1; i++)
+                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == m.Text)
+                    {
+                        for (int j = 0; j < ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Count; j++)
+                        {
+                            item = (CheckBox)((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items[j];
+                            foreach(String str in m.Receivers)
+                                if (str == item.Content.ToString())
+                                {
+                                    Core.SendMessage(GenerateMessage("", MessageType.JoinConference));
+                                    item.IsChecked = true;
+                                }
+                        }
+                    }
+            });
         }
     }
     

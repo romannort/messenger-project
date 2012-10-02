@@ -112,13 +112,13 @@ namespace iMessenger
         {
             switch (e.Message.Type)
             {
-                case MessageType.LogOut:
+                case MessageType.LeaveCommon:
                     {
                         window.ShowMessage(e.Message);
                         window.ReplaceConnectList(e.Message.SenderName);
                         break;
                     }
-                case MessageType.Joined:
+                case MessageType.JoinCommon:
                     {
                         window.AddAtConnectList(e.Message.SenderName);
                         if (e.Message.SenderName != UserName)
@@ -136,12 +136,29 @@ namespace iMessenger
                     {
                         if (e.Message.SenderName != UserName)
                             window.AddAtConnectList(e.Message.SenderName);
-                        return;
+                        break;
+                    }
+                case MessageType.LeaveConference:
+                    {
+                        if (e.Message.Receivers.Contains(UserName) == false)
+                            return;
+                        window.UncheckInConf(e.Message);
+                        window.ShowMessage(e.Message);
+                        break;
+                    }
+                case MessageType.JoinConference:
+                    {
+                        if (e.Message.Receivers.Contains(UserName) == false)
+                            return;
+                        window.CheckInConf(e.Message);
+                        window.ShowMessage(e.Message);
+                        break;
                     }
                 default:
                     {
                         if (e.Message.Receivers.Contains(UserName) == false)
                             return;
+                        window.CheckInConf(e.Message);
                         window.ShowMessage(e.Message);
                         break;
                     }
