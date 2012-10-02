@@ -7,7 +7,6 @@
 *.o
 *.so
 *.csproj
-*.sln
 *.suo
 *.config
 
