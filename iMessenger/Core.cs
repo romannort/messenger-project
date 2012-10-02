@@ -105,7 +105,6 @@ namespace iMessenger
 
             //LogHelper.WriteLog(message);
             MessageManager.OnNewMessage(new MsgReceiveEventArgs(message));
-
             return true;
         }
 

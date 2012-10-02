@@ -52,14 +52,7 @@
                     </RichTextBox>
                 </Grid>
             </TabItem>
-            <TabItem Header="+">
-                <TabItem.Background>
-                    <RadialGradientBrush>
-                        <GradientStop Color="#FF512121" Offset="1"/>
-                        <GradientStop Color="Red" Offset="0.007"/>
-                        <GradientStop Color="#FFC34C4C" Offset="0.897"/>
-                    </RadialGradientBrush>
-                </TabItem.Background>
+            <TabItem Header="+" BorderBrush="#FFAAAAAA" Background="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" Foreground="White">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
         </TabControl>

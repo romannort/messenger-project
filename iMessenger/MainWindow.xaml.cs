@@ -26,7 +26,6 @@ namespace iMessenger
     public partial class MainWindow : Window
     {
 
-        
         public Core Core { get; set; }
 
         public MainWindow()
@@ -39,9 +38,7 @@ namespace iMessenger
             try{
                 NickBox.Text = Core.UserName;
                 Core.SendMessage( GenerateMessage("", MessageType.Joined));
-                
                 MessageBox.Focus();    
-
     
             }catch( NullReferenceException exeption){
 
@@ -52,9 +49,9 @@ namespace iMessenger
         public void ShowMessage(Message message)
         {
             try{
-                Dispatcher.Invoke((ThreadStart)delegate
+                Dispatcher.Invoke(
+                    (ThreadStart)delegate
                 {
-                    Run run;
                     RichTextBox rtb;
                     String mText = message.getMessageString();
                     switch (message.Type)
@@ -79,7 +76,9 @@ namespace iMessenger
                                         return;
                                     }
                                 }
+
                                 CreateTab(message);
+                                
                                 rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[Tabs.Items.Count-2]).Content).Children[1];
                                 rtb.Document.Blocks.Add(new Paragraph(new Run(mText)));
                                 rtb.ScrollToEnd();
@@ -87,21 +86,16 @@ namespace iMessenger
                             }
                         default:
                             {
-                                CheckBox item;
-                                ListBox lb;
                                 for (int i = 0; i < Tabs.Items.Count - 1; i++)
                                 {
-                                    lb = (ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0];
-                                    for (int j = 0; j < lb.Items.Count; j++)
+                                    ListBox lb = (ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0];
+                                    foreach (CheckBox listItem in lb.Items)
                                     {
-                                        item = (CheckBox)lb.Items[j];
-                                        if (item.Content.ToString() == message.SenderName && item.IsChecked == true)
+                                        if (listItem.Content.ToString() == message.SenderName &&
+                                            listItem.IsChecked == true)
                                         {
-                                            run = new Run(mText);
-                                            run.Foreground = Brushes.DarkGreen;
-                                            run.FontStyle = FontStyles.Italic;
                                             rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[1];
-                                            rtb.Document.Blocks.Add(new Paragraph(run));
+                                            rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(mText)));
                                             rtb.ScrollToEnd();
                                         }
                                     }
@@ -109,14 +103,16 @@ namespace iMessenger
                                 break;
                             }
                     }
-
                 });
             }catch( NullReferenceException e){
 
             }
-            
         }
        
+        private Run generateStylyzedRun(String text){
+            return new Run() { Text = text, Foreground = Brushes.DarkGreen, FontStyle = FontStyles.Italic };
+        }
+
         private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Core.SendMessage(GenerateMessage("", MessageType.LogOut));
@@ -318,61 +314,58 @@ namespace iMessenger
             if (Tabs.SelectedIndex == Tabs.Items.Count - 1)
             {
                 CreateTab(null);
-                Tabs.SelectedItem = (TabItem)Tabs.Items[Tabs.Items.Count - 2];
+                Tabs.SelectedIndex -= 1; // Set  current selected tab to new created tab.
             }
         }
 
         private void CreateTab(Message message)
         {
-            TabItem tabItem = new TabItem();
-            tabItem.Background = ((TabItem)Tabs.Items[0]).Background;
-            tabItem.Foreground = ((TabItem)Tabs.Items[0]).Foreground;
-            Grid grid = new Grid();
-            grid.Margin = new Thickness(0, -1, 0, 26);
-            RichTextBox rtb = new RichTextBox();
-            rtb.Name = "ChatArea" + (Tabs.Items.Count - 1).ToString();
-            rtb.HorizontalAlignment = HorizontalAlignment.Left;
-            rtb.Margin = new Thickness(0, 0, 0, -24);
-            rtb.Width = 417;
-            rtb.AllowDrop = false;
-            rtb.IsReadOnly = true;
-            rtb.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            rtb.AcceptsReturn = false;
-            rtb.IsUndoEnabled = false;
-            rtb.Resources = ChatArea0.Resources;
+            Grid grid = new Grid() { 
+                Margin = new Thickness(0, -1, 0, 26) 
+            };
+            RichTextBox rtb = new RichTextBox() {
+                Name = "ChatArea" + (Tabs.Items.Count - 1).ToString(),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, -24),
+                Width = 417,
+                AllowDrop = false,
+                IsReadOnly = true,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                AcceptsReturn = false,
+                IsUndoEnabled = false,
+                Resources = ChatArea0.Resources
+            };
 
-            ListBox lb = new ListBox();
-            lb.Name = "ConnectList" + (Tabs.Items.Count - 1).ToString();
-            lb.HorizontalAlignment = HorizontalAlignment.Left;
-            lb.Margin = new Thickness(424, 0, 0, -24);
-            lb.Width = 204;
-            CheckBox cb;
-            for (int i = 0; i < ConnectList0.Items.Count; i++)
+            ListBox lb = new ListBox()
             {
-                cb = new CheckBox();
-                cb.Content = ((CheckBox)ConnectList0.Items[i]).Content;
-                cb.Foreground = ((CheckBox)ConnectList0.Items[i]).Foreground;
-                if (message != null && message.Receivers.Contains(cb.Content.ToString()))
-                    cb.IsChecked = true;
-                if (i == 0)
-                {
-                    cb.IsChecked = true;
-                    cb.IsEnabled = false;
-                }
-                lb.Items.Add(cb);
+                Name = "ConnectList" + (Tabs.Items.Count - 1).ToString(),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(424, 0, 0, -24),
+                Width = 204
+            };
+            
+            foreach( CheckBox cb in ConnectList0.Items)
+            {
+                
+                lb.Items.Add(new CheckBox() { 
+                    Content = cb.Content,
+                    Foreground = cb.Foreground,
+                    IsChecked = true
+                    // ^ Блокирование от удаления себя из списка рассылки удалил ^        
+                });
             }
+            
             grid.Children.Add(lb);
             grid.Children.Add(rtb);
-            tabItem.Content = grid;
-            if(message == null)
-                tabItem.Tag = System.DateTime.Now.ToString("ddHHmmss");
-            else
-                tabItem.Tag = message.Text.Remove(8);
-            tabItem.Header = "Conference #" + tabItem.Tag;
+            TabItem tabItem = new TabItem() { 
+                Background = ((TabItem)Tabs.Items[0]).Background,
+                Foreground = ((TabItem)Tabs.Items[0]).Foreground,
+                Content = grid,
+                Tag = message == null ? DateTime.Now.ToString("ddHHmmss") : message.Text.Remove(8)
+            };
+            tabItem.Header = "Conference#" + tabItem.Tag;
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
-//            Tabs.SelectedIndex = Tabs.Items.Count - 2;
         }
-
     }
     
 }
