@@ -15,6 +15,7 @@ namespace iMessenger
         public String Text { get; set; }
         public String SenderName { get; set; }
         public IPAddress SenderIP { get; set; }
+        public String ConferenceNum { get; set; }
         public List<String> Receivers { get; set; }
         public MessageType Type { get; set; }    
         
@@ -30,16 +31,20 @@ namespace iMessenger
             {
                 case MessageType.Common:
                     return messageString + SenderName + ": " + Text;
-                case MessageType.Joined:
-                    return  messageString + " <SYSTEM>: " + SenderName + " joined conference";
-                case MessageType.LogOut:
-                    return messageString  + " <SYSTEM>: " + SenderName + " has left conference";
+                case MessageType.JoinCommon:
+                    return  messageString + " <SYSTEM>: " + SenderName + " going online";
+                case MessageType.LeaveCommon:
+                    return messageString  + " <SYSTEM>: " + SenderName + " has gone offline";
                 case MessageType.ChangeName:
                     return messageString + " <SYSTEM>: " + SenderName + " changed nickname to " + Text;
                 case MessageType.Echo:
                     return messageString + " <SYSTEM>: Echo from " + SenderName;
                 case MessageType.Conference:
-                    return messageString + SenderName + ": " + Text.Replace(Text.Remove(8), "");
+                    return messageString + SenderName + ": " + Text;
+                case MessageType.LeaveConference:
+                    return messageString + " <SYSTEM>: " + SenderName + " has left this conference";
+                case MessageType.JoinConference:
+                    return messageString + " <SYSTEM>: " + SenderName + " joined conference";
                 default:
                     return "ERROR!!!";
             }
@@ -65,5 +70,5 @@ namespace iMessenger
         }
     }
 
-    public enum MessageType { Common, System, Conference, ChangeName, Joined, Echo, LogOut }
+    public enum MessageType { Common, System, Conference, ChangeName, JoinCommon, Echo, LeaveCommon, LeaveConference, JoinConference}
 }
