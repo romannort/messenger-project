@@ -6,7 +6,6 @@
 *.exe
 *.o
 *.so
-*.csproj
 *.suo
 *.config
 
