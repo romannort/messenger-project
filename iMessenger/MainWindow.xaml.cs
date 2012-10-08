@@ -89,7 +89,7 @@ namespace iMessenger
                                 {
                                     if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.Text)
                                     {
-                                        run = new Run(mText);
+                                        Run run = new Run(mText);
                                         run.Foreground = Brushes.DarkGreen;
                                         run.FontStyle = FontStyles.Italic;
                                         rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[1];
@@ -346,10 +346,12 @@ namespace iMessenger
 
         private void CreateTab(Message message)
         {
-            Grid grid = new Grid() { 
-                Margin = new Thickness(0, -1, 0, 26) 
+            Grid grid = new Grid()
+            {
+                Margin = new Thickness(0, -1, 0, 26)
             };
-            RichTextBox rtb = new RichTextBox() {
+            RichTextBox rtb = new RichTextBox()
+            {
                 Name = "ChatArea" + (Tabs.Items.Count - 1).ToString(),
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(0, 0, 0, -24),
@@ -369,21 +371,23 @@ namespace iMessenger
                 Margin = new Thickness(424, 0, 0, -24),
                 Width = 204
             };
-            
-            foreach( CheckBox cb in ConnectList0.Items)
+
+            foreach (CheckBox cb in ConnectList0.Items)
             {
-                
-                lb.Items.Add(new CheckBox() { 
+
+                lb.Items.Add(new CheckBox()
+                {
                     Content = cb.Content,
                     Foreground = cb.Foreground,
                     IsChecked = true
                     // ^ Блокирование от удаления себя из списка рассылки удалил ^        
                 });
             }
-            
+
             grid.Children.Add(lb);
             grid.Children.Add(rtb);
-            TabItem tabItem = new TabItem() { 
+            TabItem tabItem = new TabItem()
+            {
                 Background = ((TabItem)Tabs.Items[0]).Background,
                 Foreground = ((TabItem)Tabs.Items[0]).Foreground,
                 Content = grid,
@@ -393,6 +397,7 @@ namespace iMessenger
             tabItem.Name = "TabItem" + (Tabs.Items.Count - 1).ToString();
             tabItem.ContextMenu = SetPopupMenu(tabItem);
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
+        }
 
         private ContextMenu SetPopupMenu(TabItem tabItem)
         {
