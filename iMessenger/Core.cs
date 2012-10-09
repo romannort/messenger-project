@@ -114,7 +114,6 @@ namespace iMessenger
             {
                 case MessageType.LeaveCommon:
                     {
-                        window.ShowMessage(e.Message);
                         window.ReplaceConnectList(e.Message.SenderName);
                         break;
                     }
@@ -123,12 +122,10 @@ namespace iMessenger
                         window.AddAtConnectList(e.Message.SenderName);
                         if (e.Message.SenderName != UserName)
                             SendMessage(window.GenerateMessage("", MessageType.Echo));
-                        window.ShowMessage(e.Message);
                         break;
                     }
                 case MessageType.ChangeName:
                     {
-                        window.ShowMessage(e.Message);
                         window.ChangeConnectList(e.Message.SenderName, e.Message.Text);
                         break;
                     }
@@ -136,33 +133,16 @@ namespace iMessenger
                     {
                         if (e.Message.SenderName != UserName)
                             window.AddAtConnectList(e.Message.SenderName);
-                        break;
-                    }
-                case MessageType.LeaveConference:
-                    {
-                        if (e.Message.Receivers.Contains(UserName) == false)
-                            return;
-                        window.UncheckInConf(e.Message);
-                        window.ShowMessage(e.Message);
-                        break;
-                    }
-                case MessageType.JoinConference:
-                    {
-                        if (e.Message.Receivers.Contains(UserName) == false)
-                            return;
-                        window.CheckInConf(e.Message);
-                        window.ShowMessage(e.Message);
-                        break;
+                        return;
                     }
                 default:
                     {
                         if (e.Message.Receivers.Contains(UserName) == false)
                             return;
-                        window.CheckInConf(e.Message);
-                        window.ShowMessage(e.Message);
                         break;
                     }
             }
+            window.ShowMessage(e.Message);
         }
     }
 }

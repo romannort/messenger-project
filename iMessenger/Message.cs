@@ -58,7 +58,7 @@ namespace iMessenger
             s.Close();
             return m;
         }
-        public static Byte[] Serialize( Message m)
+        public static Byte[] Serialize(Message m)
         {
             IFormatter formatter = new BinaryFormatter();
             MemoryStream stream = new MemoryStream();

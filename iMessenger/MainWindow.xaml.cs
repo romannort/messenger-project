@@ -20,17 +20,18 @@ using System.Windows.Shapes;
 
 namespace iMessenger
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+
     public partial class MainWindow : Window
     {
 
         public Core Core { get; set; }
+        public TabList<Tab> ConfList;
 
         public MainWindow()
         {
             InitializeComponent();
+            ConfList = new TabList<Tab>();
+            ConfList.Add(new Tab(new Message {Type = MessageType.Common}, ConnectList0, ChatArea0));
         }
 
         private void Chat_Loaded(object sender, RoutedEventArgs e)
@@ -49,52 +50,46 @@ namespace iMessenger
         public void ShowMessage(Message message)
         {
             try{
-                Dispatcher.Invoke(
-                    (ThreadStart)delegate
+                Dispatcher.Invoke((ThreadStart)delegate
                 {
-                    RichTextBox rtb;
-                    String mText = message.getMessageString();
                     switch (message.Type)
                     {
                         case MessageType.Common:
                             {
-                                rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[0]).Content).Children[1];
-                                rtb.Document.Blocks.Add(new Paragraph(new Run(mText)));
-                                rtb.ScrollToEnd();
+                                ConfList[0].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                ConfList[0].rtb.ScrollToEnd();
                                 break;
                             }
                         case MessageType.Conference:
                             {
-                                for (int i = 1; i < Tabs.Items.Count - 1; i++)
+                                foreach(Tab tab in ConfList)
                                 {
-                                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.ConferenceNum)
+                                    if (tab.Name.ToString() == message.ConferenceNum)
                                     {
-                                        rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[1];
-                                        rtb.Document.Blocks.Add(new Paragraph(new Run(mText)));
-                                        rtb.ScrollToEnd();
+                                        tab.rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                        tab.rtb.ScrollToEnd();
                                         return;
                                     }
                                 }
 
                                 CreateTab(message);
-                                
-                                rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[Tabs.Items.Count - 2]).Content).Children[1];
-                                rtb.Document.Blocks.Add(new Paragraph(new Run(mText)));
-                                rtb.ScrollToEnd();
+
+                                ConfList[ConfList.Count - 1].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                ConfList[ConfList.Count-1].rtb.ScrollToEnd();
                                 break;
                             }
                         case MessageType.LeaveConference:
                             {
-                                for (int i = 1; i < Tabs.Items.Count - 1; i++)
+                                foreach(Tab tab in ConfList)
                                 {
-                                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.Text)
+                                    if (tab.Name.ToString() == message.Text)
                                     {
-                                        Run run = new Run(mText);
+                                        Run run = new Run(message.getMessageString());
                                         run.Foreground = Brushes.DarkGreen;
                                         run.FontStyle = FontStyles.Italic;
-                                        rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[1];
-                                        rtb.Document.Blocks.Add(new Paragraph(run));
-                                        rtb.ScrollToEnd();
+
+                                        tab.rtb.Document.Blocks.Add(new Paragraph(run));
+                                        tab.rtb.ScrollToEnd();
                                         return;
                                     }
                                 }
@@ -102,17 +97,15 @@ namespace iMessenger
                             }
                         default:
                             {
-                                for (int i = 0; i < Tabs.Items.Count - 1; i++)
+                                foreach (Tab tab in ConfList)
                                 {
-                                    ListBox lb = (ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0];
-                                    foreach (CheckBox listItem in lb.Items)
+                                    foreach (CheckBox listItem in tab.lb.Items)
                                     {
                                         if (listItem.Content.ToString() == message.SenderName &&
                                             listItem.IsChecked == true)
                                         {
-                                            rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[1];
-                                            rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(mText)));
-                                            rtb.ScrollToEnd();
+                                            tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
+                                            tab.rtb.ScrollToEnd();
                                         }
                                     }
                                 }
@@ -330,7 +323,10 @@ namespace iMessenger
             String res = "";
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                res = ((TabItem)Tabs.SelectedItem).Tag.ToString();
+                if (Tabs.SelectedIndex == 0)
+                    res = "Common";
+                else
+                    res = ConfList[Tabs.SelectedIndex-1].Name;
             });
             return res;
         }
@@ -346,55 +342,19 @@ namespace iMessenger
 
         private void CreateTab(Message message)
         {
-            Grid grid = new Grid()
-            {
-                Margin = new Thickness(0, -1, 0, 26)
-            };
-            RichTextBox rtb = new RichTextBox()
-            {
-                Name = "ChatArea" + (Tabs.Items.Count - 1).ToString(),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 0, 0, -24),
-                Width = 417,
-                AllowDrop = false,
-                IsReadOnly = true,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                AcceptsReturn = false,
-                IsUndoEnabled = false,
-                Resources = ChatArea0.Resources
-            };
-
-            ListBox lb = new ListBox()
-            {
-                Name = "ConnectList" + (Tabs.Items.Count - 1).ToString(),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(424, 0, 0, -24),
-                Width = 204
-            };
-
-            foreach (CheckBox cb in ConnectList0.Items)
-            {
-
-                lb.Items.Add(new CheckBox()
-                {
-                    Content = cb.Content,
-                    Foreground = cb.Foreground,
-                    IsChecked = true
-                    // ^ Блокирование от удаления себя из списка рассылки удалил ^        
-                });
-            }
-
-            grid.Children.Add(lb);
-            grid.Children.Add(rtb);
+            Tab newTab = new Tab(message, ConnectList0, ChatArea0);
+            newTab.lb.Name = "ChatArea" + (ConfList.Count+1).ToString();
+            newTab.rtb.Name = "ConnectList" + (ConfList.Count + 1).ToString();
+            ConfList.Add(newTab);
+            
             TabItem tabItem = new TabItem()
             {
                 Background = ((TabItem)Tabs.Items[0]).Background,
                 Foreground = ((TabItem)Tabs.Items[0]).Foreground,
-                Content = grid,
-                Tag = message == null ? DateTime.Now.ToString("ddHHmmss") : message.Text.Remove(8)
+                Content = newTab.grid,
             };
-            tabItem.Header = "Conference#" + tabItem.Tag;
             tabItem.Name = "TabItem" + (Tabs.Items.Count - 1).ToString();
+            tabItem.Header = "Conference#" + newTab.Name;
             tabItem.ContextMenu = SetPopupMenu(tabItem);
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
         }
@@ -432,57 +392,15 @@ namespace iMessenger
                 if (((TabItem)Tabs.Items[i]).Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
                 {
                     ToDelete = (TabItem)Tabs.Items[i];
+                    Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
+                    ConfList.Delete(i - 1);
                     break;
                 }
-            Core.SendMessage(GenerateMessage(ToDelete.Tag.ToString(), MessageType.LeaveConference));
             Tabs.SelectedItem = Tabs.Items[0];
             Tabs.Items.Remove(ToDelete);
             return;
         }
 
-        public void UncheckInConf(Message m)
-        {
-            CheckBox item;
-            Dispatcher.Invoke((ThreadStart)delegate
-            {
-                for (int i = 1; i < Tabs.Items.Count - 1; i++)
-                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == m.Text)
-                    {
-                        for (int j = 0; j < ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Count; j++)
-                        {
-                            item = (CheckBox)((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items[j];
-                            if (item.Content.ToString() == m.SenderName)
-                            {
-                                Core.SendMessage(GenerateMessage("", MessageType.LeaveConference));
-                                item.IsChecked = false;
-                                return;
-                            }
-                        }
-                    }
-            });
-        }
-
-        public void CheckInConf(Message m)
-        {
-            CheckBox item;
-            Dispatcher.Invoke((ThreadStart)delegate
-            {
-                for (int i = 1; i < Tabs.Items.Count - 1; i++)
-                    if (((TabItem)Tabs.Items[i]).Tag.ToString() == m.Text)
-                    {
-                        for (int j = 0; j < ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Count; j++)
-                        {
-                            item = (CheckBox)((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items[j];
-                            foreach(String str in m.Receivers)
-                                if (str == item.Content.ToString())
-                                {
-                                    Core.SendMessage(GenerateMessage("", MessageType.JoinConference));
-                                    item.IsChecked = true;
-                                }
-                        }
-                    }
-            });
-        }
     }
     
 }
