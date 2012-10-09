@@ -31,7 +31,7 @@ namespace iMessenger
         {
             InitializeComponent();
             ConferenceList = new TabList<Tab>();
-            ConferenceList.Add(new Tab(new Message {Type = MessageType.Common}, ConnectList0, ChatArea0));
+            ConferenceList.Add(new Tab("Common", ConnectList0, ChatArea0));
         }
 
         private void Chat_Loaded(object sender, RoutedEventArgs e)
@@ -49,14 +49,15 @@ namespace iMessenger
         public void ShowMessage(Message message)
         {
             try{
-                Dispatcher.Invoke((ThreadStart)delegate
-                {
                     switch (message.Type)
                     {
                         case MessageType.Common:
                             {
-                                ConferenceList[0].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                ConferenceList[0].rtb.ScrollToEnd();
+                                Dispatcher.Invoke((ThreadStart)delegate
+                                {
+                                    ConferenceList[0].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                    ConferenceList[0].rtb.ScrollToEnd();
+                                });
                                 break;
                             }
                         case MessageType.Conference:
@@ -65,16 +66,22 @@ namespace iMessenger
                                 {
                                     if (tab.Name.ToString() == message.ConferenceNum)
                                     {
-                                        tab.rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                        tab.rtb.ScrollToEnd();
+                                        Dispatcher.Invoke((ThreadStart)delegate
+                                        {
+                                            tab.rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                            tab.rtb.ScrollToEnd();
+                                        });
                                         return;
                                     }
                                 }
 
-                                CreateTab(message);
+                                Dispatcher.Invoke((ThreadStart)delegate
+                                {
+                                    CreateTab(message.Text.Remove(8));
 
-                                ConferenceList[ConferenceList.Count - 1].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                ConferenceList[ConferenceList.Count-1].rtb.ScrollToEnd();
+                                    ConferenceList[ConferenceList.Count - 1].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                    ConferenceList[ConferenceList.Count-1].rtb.ScrollToEnd();
+                                });
                                 break;
                             }
                         case MessageType.LeaveConference:
@@ -83,8 +90,11 @@ namespace iMessenger
                                 {
                                     if (tab.Name.ToString() == message.Text)
                                     {
-                                        tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
-                                        tab.rtb.ScrollToEnd();
+                                        Dispatcher.Invoke((ThreadStart)delegate
+                                        {
+                                            tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
+                                            tab.rtb.ScrollToEnd();
+                                        });
                                         return;
                                     }
                                 }
@@ -96,18 +106,20 @@ namespace iMessenger
                                 {
                                     foreach (CheckBox listItem in tab.lb.Items)
                                     {
-                                        if (listItem.Content.ToString() == message.SenderName &&
-                                            listItem.IsChecked == true)
+                                        Dispatcher.Invoke((ThreadStart)delegate
                                         {
-                                            tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
-                                            tab.rtb.ScrollToEnd();
-                                        }
+                                            if (listItem.Content.ToString() == message.SenderName &&
+                                                listItem.IsChecked == true)
+                                            {
+                                                tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
+                                                tab.rtb.ScrollToEnd();
+                                            }
+                                        });
                                     }
                                 }
                                 break;
                             }
                     }
-                });
             }catch( NullReferenceException e){
 
             }
@@ -176,9 +188,9 @@ namespace iMessenger
             {
                 CheckBox item = new CheckBox();
                 bool flag = true;
-                for (int i = 0; i < ConnectList0.Items.Count; i++)
+                for (int i = 0; i < ConferenceList[0].lb.Items.Count; i++)
                 {
-                    item = (CheckBox)ConnectList0.Items[i];
+                    item = (CheckBox)ConferenceList[0].lb.Items[i];
                     if (item.Content.ToString() == NickBox.Text)
                     {
                         flag = false;
@@ -197,8 +209,8 @@ namespace iMessenger
                     {
                         Run run = new Run("This nickname is already in use!");
                         run.Foreground = Brushes.Red;
-                        ChatArea0.Document.Blocks.Add(new Paragraph(run));
-                        ChatArea0.ScrollToEnd();
+                        ConferenceList[0].rtb.Document.Blocks.Add(new Paragraph(run));
+                        ConferenceList[0].rtb.ScrollToEnd();
                     });
                 }
             }
@@ -209,14 +221,12 @@ namespace iMessenger
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                CheckBox item = new CheckBox();
-                for (int i = 0; i < ConnectList0.Items.Count; i++)
+                for (int i = 0; i < ConferenceList[0].lb.Items.Count; i++)
                 {
-                    item = (CheckBox)ConnectList0.Items[i];
-                    if (item.Content.ToString() == newNick)
+                    if(((CheckBox)ConferenceList[0].lb.Items[i]).Content.ToString() == newNick)
                         return;
                 }
-                item = new CheckBox();
+                CheckBox item = new CheckBox();
                 item.Content = newNick;
                 item.IsChecked = true;
                 byte[] RGB = new byte[3]; 
@@ -225,17 +235,15 @@ namespace iMessenger
                 for(int i=0; i<3; i++)
                     RGB[i] = (byte)(RGB[i] % 128);
                 item.Foreground = new SolidColorBrush(Color.FromRgb(RGB[0], RGB[1], RGB[2]));
-                if (newNick == Core.UserName)
-                    item.IsEnabled = false;
-                ConnectList0.Items.Add(item);
+                ConferenceList[0].lb.Items.Add(item);
                 CheckBox ToFor;
-                for (int i = 1; i < Tabs.Items.Count - 1; i++)
+                for (int i = 0; i < ConferenceList.Count; i++)
                 {
                     ToFor = new CheckBox();
                     ToFor.Content = item.Content;
                     ToFor.IsChecked = false;
                     ToFor.Foreground = item.Foreground;
-                    ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Add(ToFor);
+                    ConferenceList[0].lb.Items.Add(ToFor);
                 }
             });
         }
@@ -247,16 +255,16 @@ namespace iMessenger
                 Dispatcher.Invoke((ThreadStart)delegate
                 {
                     CheckBox item;
-                    for (int i = 0; i < Tabs.Items.Count - 1; i++)
+                    for (int i = 0; i < ConferenceList.Count; i++)
                     {
-                        for (int j = 0; j < ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Count; j++)
+                        for (int j = 0; j < ConferenceList[i].lb.Items.Count; j++)
                         {
-                            item = (CheckBox)((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items[j];
+                            item = (CheckBox)ConferenceList[i].lb.Items[j];
                             if (item.Content.ToString() == oldNick)
                             {
-                                ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Remove(item);
+                                ConferenceList[i].lb.Items.Remove(item);
                                 item.Content = newNick;
-                                ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Insert(j, item);
+                                ConferenceList[i].lb.Items.Insert(j, item);
                                 break;
                             }
                         }
@@ -273,14 +281,14 @@ namespace iMessenger
             Dispatcher.Invoke((ThreadStart)delegate
             {
                 CheckBox item;
-                for (int i = 0; i < Tabs.Items.Count - 1; i++)
+                for (int i = 0; i < ConferenceList.Count; i++)
                 {
-                    for (int j = 0; j < ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Count; j++)
+                    for (int j = 0; j < ConferenceList[i].lb.Items.Count; j++)
                     {
-                        item = (CheckBox)((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items[j];
+                        item = (CheckBox)ConferenceList[i].lb.Items[j];
                         if (item.Content.ToString() == oldNick)
                         {
-                            ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Remove(item);
+                            ConferenceList[i].lb.Items.Remove(item);
                             break;
                         }
                     }
@@ -335,7 +343,7 @@ namespace iMessenger
             }
         }
 
-        private void CreateTab(Message message)
+        private void CreateTab(String message)
         {
             Tab newTab = new Tab(message, ConnectList0, ChatArea0);
             newTab.lb.Name = "ChatArea" + (ConferenceList.Count+1).ToString();
@@ -394,7 +402,6 @@ namespace iMessenger
             Tabs.Items.Remove(ToDelete);
             return;
         }
-
     }
     
 }
