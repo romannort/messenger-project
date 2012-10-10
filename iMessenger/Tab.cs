@@ -15,6 +15,7 @@ namespace iMessenger
         public RichTextBox rtb;
         public String Name;
 
+        // Передавать String вместо Message !
         public Tab(Message m, ListBox ConList, RichTextBox ChatArea)
         {
             grid = new Grid()
@@ -56,6 +57,7 @@ namespace iMessenger
 
             grid.Children.Add(lb);
             grid.Children.Add(rtb);
+            // Передавать String вместо Message
             if (m != null)
                 Name = m.Type == MessageType.Common ? "Common" : m.Text.Remove(8);
             else

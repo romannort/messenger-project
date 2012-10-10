@@ -25,13 +25,13 @@ namespace iMessenger
     {
 
         public Core Core { get; set; }
-        public TabList<Tab> ConfList;
+        public TabList<Tab> ConferenceList;
 
         public MainWindow()
         {
             InitializeComponent();
-            ConfList = new TabList<Tab>();
-            ConfList.Add(new Tab(new Message {Type = MessageType.Common}, ConnectList0, ChatArea0));
+            ConferenceList = new TabList<Tab>();
+            ConferenceList.Add(new Tab(new Message {Type = MessageType.Common}, ConnectList0, ChatArea0));
         }
 
         private void Chat_Loaded(object sender, RoutedEventArgs e)
@@ -40,7 +40,6 @@ namespace iMessenger
                 NickBox.Text = Core.UserName;
                 Core.SendMessage( GenerateMessage("", MessageType.JoinCommon));
                 MessageBox.Focus();    
-    
             }catch( NullReferenceException exeption){
 
             }
@@ -56,13 +55,13 @@ namespace iMessenger
                     {
                         case MessageType.Common:
                             {
-                                ConfList[0].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                ConfList[0].rtb.ScrollToEnd();
+                                ConferenceList[0].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                ConferenceList[0].rtb.ScrollToEnd();
                                 break;
                             }
                         case MessageType.Conference:
                             {
-                                foreach(Tab tab in ConfList)
+                                foreach(Tab tab in ConferenceList)
                                 {
                                     if (tab.Name.ToString() == message.ConferenceNum)
                                     {
@@ -74,21 +73,17 @@ namespace iMessenger
 
                                 CreateTab(message);
 
-                                ConfList[ConfList.Count - 1].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                ConfList[ConfList.Count-1].rtb.ScrollToEnd();
+                                ConferenceList[ConferenceList.Count - 1].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
+                                ConferenceList[ConferenceList.Count-1].rtb.ScrollToEnd();
                                 break;
                             }
                         case MessageType.LeaveConference:
                             {
-                                foreach(Tab tab in ConfList)
+                                foreach(Tab tab in ConferenceList)
                                 {
                                     if (tab.Name.ToString() == message.Text)
                                     {
-                                        Run run = new Run(message.getMessageString());
-                                        run.Foreground = Brushes.DarkGreen;
-                                        run.FontStyle = FontStyles.Italic;
-
-                                        tab.rtb.Document.Blocks.Add(new Paragraph(run));
+                                        tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
                                         tab.rtb.ScrollToEnd();
                                         return;
                                     }
@@ -97,7 +92,7 @@ namespace iMessenger
                             }
                         default:
                             {
-                                foreach (Tab tab in ConfList)
+                                foreach (Tab tab in ConferenceList)
                                 {
                                     foreach (CheckBox listItem in tab.lb.Items)
                                     {
@@ -326,7 +321,7 @@ namespace iMessenger
                 if (Tabs.SelectedIndex == 0)
                     res = "Common";
                 else
-                    res = ConfList[Tabs.SelectedIndex-1].Name;
+                    res = ConferenceList[Tabs.SelectedIndex-1].Name;
             });
             return res;
         }
@@ -343,9 +338,9 @@ namespace iMessenger
         private void CreateTab(Message message)
         {
             Tab newTab = new Tab(message, ConnectList0, ChatArea0);
-            newTab.lb.Name = "ChatArea" + (ConfList.Count+1).ToString();
-            newTab.rtb.Name = "ConnectList" + (ConfList.Count + 1).ToString();
-            ConfList.Add(newTab);
+            newTab.lb.Name = "ChatArea" + (ConferenceList.Count+1).ToString();
+            newTab.rtb.Name = "ConnectList" + (ConferenceList.Count + 1).ToString();
+            ConferenceList.Add(newTab);
             
             TabItem tabItem = new TabItem()
             {
@@ -376,7 +371,6 @@ namespace iMessenger
             Close.Click += new RoutedEventHandler(ContextMenu_OnCloseClick);
             PopupMenu.Items.Add(Close);
             PopupMenu.Name = "PopupMenu" + tabItem.Name.Replace("TabItem", "");
-
             return PopupMenu;
         }
 
@@ -393,7 +387,7 @@ namespace iMessenger
                 {
                     ToDelete = (TabItem)Tabs.Items[i];
                     Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
-                    ConfList.Delete(i - 1);
+                    ConferenceList.Delete(i - 1);
                     break;
                 }
             Tabs.SelectedItem = Tabs.Items[0];
