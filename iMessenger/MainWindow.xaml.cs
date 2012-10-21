@@ -1,155 +1,115 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace iMessenger
 {
 
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
 
         public Core Core { get; set; }
-        public TabList<Tab> ConferenceList;
+        readonly Roster<User> _roster;
 
         public MainWindow()
         {
             InitializeComponent();
-            ConferenceList = new TabList<Tab>();
-            ConferenceList.Add(new Tab("Common", ConnectList0, ChatArea0));
+            _roster = new Roster<User>();
         }
 
-        private void Chat_Loaded(object sender, RoutedEventArgs e)
+        private void ChatLoaded(object sender, RoutedEventArgs e)
         {
-            try{
-                NickBox.Text = Core.UserName;
-                Core.SendMessage( GenerateMessage("", MessageType.JoinCommon));
-                MessageBox.Focus();    
-            }catch( NullReferenceException exeption){
-
-            }
+            NickBox.Text = Core.UserName;
+            Core.SendMessage(GenerateMessage("", MessageType.JoinCommon));
+            MessageBox.Focus();
         }
 
-    
         public void ShowMessage(Message message)
         {
-            try{
-                    switch (message.Type)
-                    {
-                        case MessageType.Common:
+            Dispatcher.Invoke((ThreadStart)delegate
+            {
+                switch (message.Type)
+                {
+                    case MessageType.Common:
+                        {
+                            ShowAt(0, new Run(message.GetMessageString()));
+                            break;
+                        }
+                    case MessageType.Conference:
+                        {
+                            for (var i = 1; i < Tabs.Items.Count - 1; i++)
                             {
-                                Dispatcher.Invoke((ThreadStart)delegate
+                                if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.ConferenceNumber)
                                 {
-                                    ConferenceList[0].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                    ConferenceList[0].rtb.ScrollToEnd();
-                                });
-                                break;
+                                    ShowAt(i, new Run(message.GetMessageString()));
+                                    return;
+                                }
                             }
-                        case MessageType.Conference:
+                            CreateTab(message);
+                            ShowAt(Tabs.Items.Count - 2, new Run(message.GetMessageString()));
+                            break;
+                        }
+                    default:
+                        {
+                            for (var i = 0; i < Tabs.Items.Count - 1; i++)
                             {
-                                foreach(Tab tab in ConferenceList)
+                                var lb = (ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0];
+                                foreach (CheckBox item in lb.Items)
                                 {
-                                    if (tab.Name.ToString() == message.ConferenceNum)
+                                    if (item.Content.ToString() == message.SenderName && item.IsChecked == true)
                                     {
-                                        Dispatcher.Invoke((ThreadStart)delegate
-                                        {
-                                            tab.rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                            tab.rtb.ScrollToEnd();
-                                        });
-                                        return;
+                                        ShowAt(i, GenerateStylyzedRun(message.GetMessageString()));
                                     }
                                 }
-
-                                Dispatcher.Invoke((ThreadStart)delegate
-                                {
-                                    CreateTab(message.Text.Remove(8));
-
-                                    ConferenceList[ConferenceList.Count - 1].rtb.Document.Blocks.Add(new Paragraph(new Run(message.getMessageString())));
-                                    ConferenceList[ConferenceList.Count-1].rtb.ScrollToEnd();
-                                });
-                                break;
                             }
-                        case MessageType.LeaveConference:
-                            {
-                                foreach(Tab tab in ConferenceList)
-                                {
-                                    if (tab.Name.ToString() == message.Text)
-                                    {
-                                        Dispatcher.Invoke((ThreadStart)delegate
-                                        {
-                                            tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
-                                            tab.rtb.ScrollToEnd();
-                                        });
-                                        return;
-                                    }
-                                }
-                                break;
-                            }
-                        default:
-                            {
-                                foreach (Tab tab in ConferenceList)
-                                {
-                                    foreach (CheckBox listItem in tab.lb.Items)
-                                    {
-                                        Dispatcher.Invoke((ThreadStart)delegate
-                                        {
-                                            if (listItem.Content.ToString() == message.SenderName &&
-                                                listItem.IsChecked == true)
-                                            {
-                                                tab.rtb.Document.Blocks.Add(new Paragraph(generateStylyzedRun(message.getMessageString())));
-                                                tab.rtb.ScrollToEnd();
-                                            }
-                                        });
-                                    }
-                                }
-                                break;
-                            }
-                    }
-            }catch( NullReferenceException e){
-
-            }
-        }
-       
-        private Run generateStylyzedRun(String text){
-            return new Run() { Text = text, Foreground = Brushes.DarkGreen, FontStyle = FontStyles.Italic };
+                            break;
+                        }
+                }
+            });
         }
 
-        private void Chat_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void ShowAt(int idx, Run run)
+        {
+            var rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[idx]).Content).Children[1];
+            rtb.Document.Blocks.Add(new Paragraph(run));
+            rtb.ScrollToEnd();
+        }   
+
+        private Run GenerateStylyzedRun(String text)
+        {
+            return new Run
+            {
+                Text = text, 
+                Foreground = Brushes.DarkGreen, 
+                FontStyle = FontStyles.Italic
+            };
+        }
+
+        private void ChatClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Core.SendMessage(GenerateMessage("", MessageType.LeaveCommon));
             Environment.Exit(0x0);
         }
 
-        private void SendButton_Click(object sender, RoutedEventArgs e)
+        private void SendButtonClick(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
             {
-                if(Tabs.SelectedIndex == 0)
-                    Core.SendMessage(GenerateMessage(GetMessageText(), MessageType.Common));
-                else
-                    Core.SendMessage(GenerateMessage(GetMessageText(), MessageType.Conference));
+                Core.SendMessage(Tabs.SelectedIndex == 0
+                                     ? GenerateMessage(GetMessageText(), MessageType.Common)
+                                     : GenerateMessage(GetMessageText(), MessageType.Conference));
             }
         }
 
-        private void MessageBox_KeyDown(object sender, KeyEventArgs e)
+        private void MessageBoxKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-                SendButton_Click(sender, new RoutedEventArgs());
+                SendButtonClick(sender, new RoutedEventArgs());
         }
         
         private String GetMessageText()
@@ -164,20 +124,20 @@ namespace iMessenger
             return null;
         }
 
-        public Message GenerateMessage(String data, MessageType Type)
+        public Message GenerateMessage(String data, MessageType type)
         {
-            return new Message()
+            return new Message
             {
                 SenderName = Core.UserName,
                 SenderIP = Core.UserIP,
                 Text = data,
-                Type = Type,
+                Type = type,
                 Receivers = GetReceiversList(),
-                ConferenceNum = GetConferenceNum()
+                ConferenceNumber = GetConferenceNumber()
             };
         }
         
-        private void NickBox_LostFocus(object sender, RoutedEventArgs e)
+        private void NickBoxLostFocus(object sender, RoutedEventArgs e)
         {
             NicknameChanging();
         }
@@ -186,33 +146,13 @@ namespace iMessenger
         {
             if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.UserName)
             {
-                CheckBox item = new CheckBox();
-                bool flag = true;
-                for (int i = 0; i < ConferenceList[0].lb.Items.Count; i++)
-                {
-                    item = (CheckBox)ConferenceList[0].lb.Items[i];
-                    if (item.Content.ToString() == NickBox.Text)
-                    {
-                        flag = false;
-                        break;
-                    }
-                }
-                if (flag)
+                if (_roster.IndexOf(new User(NickBox.Text)) == -1)
                 {
                     Core.SendMessage(GenerateMessage(NickBox.Text, MessageType.ChangeName));
                     Core.UserName = NickBox.Text;
                     return;
                 }
-                else
-                {
-                    Dispatcher.Invoke((ThreadStart)delegate
-                    {
-                        Run run = new Run("This nickname is already in use!");
-                        run.Foreground = Brushes.Red;
-                        ConferenceList[0].rtb.Document.Blocks.Add(new Paragraph(run));
-                        ConferenceList[0].rtb.ScrollToEnd();
-                    });
-                }
+                Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, new Run("This nickname is already in use!"))));
             }
             NickBox.Text = Core.UserName;
         }
@@ -221,93 +161,74 @@ namespace iMessenger
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                for (int i = 0; i < ConferenceList[0].lb.Items.Count; i++)
+                _roster.Add(new User(newNick));
+
+                for (var i = 0; i < Tabs.Items.Count-1; i++)
                 {
-                    if(((CheckBox)ConferenceList[0].lb.Items[i]).Content.ToString() == newNick)
-                        return;
-                }
-                CheckBox item = new CheckBox();
-                item.Content = newNick;
-                item.IsChecked = true;
-                byte[] RGB = new byte[3]; 
-                Random r = new Random();
-                r.NextBytes(RGB);
-                for(int i=0; i<3; i++)
-                    RGB[i] = (byte)(RGB[i] % 128);
-                item.Foreground = new SolidColorBrush(Color.FromRgb(RGB[0], RGB[1], RGB[2]));
-                ConferenceList[0].lb.Items.Add(item);
-                CheckBox ToFor;
-                for (int i = 0; i < ConferenceList.Count; i++)
-                {
-                    ToFor = new CheckBox();
-                    ToFor.Content = item.Content;
-                    ToFor.IsChecked = false;
-                    ToFor.Foreground = item.Foreground;
-                    ConferenceList[0].lb.Items.Add(ToFor);
+                    var item = new CheckBox
+                    {
+                        Content = newNick,
+                        IsChecked = i == 0,
+                        Foreground = RandomColor()
+                    };
+                    ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.Add(item);
                 }
             });
         }
 
+        public SolidColorBrush RandomColor()
+        {
+            var rgb = new byte[3];
+            var r = new Random();
+            r.NextBytes(rgb);
+            for (var i = 0; i < 3; i++)
+                rgb[i] = (byte)(rgb[i] % 128);
+
+            return new SolidColorBrush(Color.FromRgb(rgb[0], rgb[1], rgb[2]));
+        }
+
         public void ChangeConnectList(string oldNick, string newNick)
         {
-            try
+            Dispatcher.Invoke((ThreadStart)delegate
             {
-                Dispatcher.Invoke((ThreadStart)delegate
-                {
-                    CheckBox item;
-                    for (int i = 0; i < ConferenceList.Count; i++)
-                    {
-                        for (int j = 0; j < ConferenceList[i].lb.Items.Count; j++)
-                        {
-                            item = (CheckBox)ConferenceList[i].lb.Items[j];
-                            if (item.Content.ToString() == oldNick)
-                            {
-                                ConferenceList[i].lb.Items.Remove(item);
-                                item.Content = newNick;
-                                ConferenceList[i].lb.Items.Insert(j, item);
-                                break;
-                            }
-                        }
-                    }
-                });
-            }catch(ArgumentOutOfRangeException e)
-            {
+                var idx = _roster.IndexOf(new User(oldNick));
+                _roster.Change(new User(oldNick), new User(newNick));
 
-            }            
+                for (var i = 0; i < Tabs.Items.Count-1; i++)
+                {
+                    var lb = ((ListBox) ((Grid) ((TabItem) Tabs.Items[i]).Content).Children[0]);
+                    var toChange = (CheckBox)lb.Items[idx];
+                    lb.Items.RemoveAt(idx);
+                    toChange.Content = newNick;
+                    lb.Items.Insert(idx, toChange);
+                }
+            });
         }
 
         public void ReplaceConnectList(string oldNick)
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                CheckBox item;
-                for (int i = 0; i < ConferenceList.Count; i++)
+                var idx = _roster.IndexOf(new User(oldNick));
+                _roster.Delete(new User(oldNick));
+
+                for (var i = 0; i < Tabs.Items.Count - 1; i++)
                 {
-                    for (int j = 0; j < ConferenceList[i].lb.Items.Count; j++)
-                    {
-                        item = (CheckBox)ConferenceList[i].lb.Items[j];
-                        if (item.Content.ToString() == oldNick)
-                        {
-                            ConferenceList[i].lb.Items.Remove(item);
-                            break;
-                        }
-                    }
+                   ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.RemoveAt(idx);
                 }
             });
         }
 
-        private void NickBox_KeyDown(object sender, KeyEventArgs e)
+        private void NickBoxKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
-            {
-                NicknameChanging();
-                MessageBox.Focus();
-            }
+            if (e.Key != Key.Enter) return;
+            NicknameChanging();
+            MessageBox.Focus();
         }
 
         private List<String> GetReceiversList()
         {
-            List<String> receiversList = new List<String>();
+            var receiversList = new List<String>();
             Dispatcher.Invoke((ThreadStart)delegate
             {
                 foreach (CheckBox a in ((ListBox)((Grid)((TabItem)Tabs.Items[Tabs.SelectedIndex]).Content).Children[0]).Items)
@@ -321,86 +242,127 @@ namespace iMessenger
             return receiversList;
         }
 
-        private String GetConferenceNum()
+        private String GetConferenceNumber()
         {
-            String res = "";
+            var res = "";
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                if (Tabs.SelectedIndex == 0)
-                    res = "Common";
-                else
-                    res = ConferenceList[Tabs.SelectedIndex-1].Name;
+                res = ((TabItem)Tabs.SelectedItem).Tag.ToString();
             });
             return res;
         }
 
-        private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void TabsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (Tabs.SelectedIndex == Tabs.Items.Count - 1)
-            {
-                CreateTab(null);
-                Tabs.SelectedIndex -= 1; // Set  current selected tab to new created tab.
-            }
+            if (Tabs.SelectedIndex != Tabs.Items.Count - 1) return;
+            CreateTab(null);
+            Tabs.SelectedIndex -= 1; // Set  current selected tab to new created tab.
         }
 
-        private void CreateTab(String message)
+        private void CreateTab(Message message)
         {
-            Tab newTab = new Tab(message, ConnectList0, ChatArea0);
-            newTab.lb.Name = "ChatArea" + (ConferenceList.Count+1).ToString();
-            newTab.rtb.Name = "ConnectList" + (ConferenceList.Count + 1).ToString();
-            ConferenceList.Add(newTab);
-            
-            TabItem tabItem = new TabItem()
+            var grid = new Grid
+            {
+                Margin = new Thickness(0, -1, 0, 26)
+            };
+
+            var rtb = new RichTextBox
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, -24),
+                Width = 417,
+                AllowDrop = false,
+                IsReadOnly = true,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                AcceptsReturn = false,
+                IsUndoEnabled = false,
+                Resources = ChatArea0.Resources
+            };
+
+            var lb = new ListBox
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(424, 0, 0, -24),
+                Width = 204
+            };
+
+            foreach (CheckBox cb in ConnectList0.Items)
+            {
+
+                lb.Items.Add(new CheckBox
+                {
+                    Content = cb.Content,
+                    Foreground = cb.Foreground,
+                    IsChecked = true,
+                    IsEnabled = false
+                });
+            }
+
+            grid.Children.Add(lb);
+            grid.Children.Add(rtb);
+
+            var tag = (message == null ? DateTime.Now.ToString("ddHHmmss") : message.ConferenceNumber);
+            var tabItem = new TabItem
             {
                 Background = ((TabItem)Tabs.Items[0]).Background,
                 Foreground = ((TabItem)Tabs.Items[0]).Foreground,
-                Content = newTab.grid,
+                Name = "TabItem" + (Tabs.Items.Count - 1),
+                Header = "Conference#" + tag,
+                Tag = tag,
+                Content = grid,
             };
-            tabItem.Name = "TabItem" + (Tabs.Items.Count - 1).ToString();
-            tabItem.Header = "Conference#" + newTab.Name;
-            tabItem.ContextMenu = SetPopupMenu(tabItem);
+            tabItem.Header = SetPopupMenu(tabItem);
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
         }
 
-        private ContextMenu SetPopupMenu(TabItem tabItem)
+        private ContentControl SetPopupMenu(HeaderedContentControl tabItem)
         {
-            ContextMenu PopupMenu = new ContextMenu();
-            PopupMenu.Foreground = new SolidColorBrush(Colors.DarkRed);
+            var popupMenu = new ContextMenu
+            {
+                Foreground = new SolidColorBrush(Colors.DarkRed),
+                Name = "PopupMenu" + tabItem.Name.Replace("TabItem", "")
+            };
 
-            MenuItem Rename = new MenuItem();
-            Rename.IsCheckable = false;
-            Rename.Header = "Rename";
-            Rename.Click += new RoutedEventHandler(ContextMenu_OnRenameClick);
-            PopupMenu.Items.Add(Rename);
+            var rename = new MenuItem
+            {
+                IsCheckable = false, 
+                Header = "Rename"
+            };
+            rename.Click += ContextMenu_OnRenameClick;
+            popupMenu.Items.Add(rename);
 
-            MenuItem Close = new MenuItem();
-            Close.IsCheckable = false;
-            Close.Header = "Close";
-            Close.Click += new RoutedEventHandler(ContextMenu_OnCloseClick);
-            PopupMenu.Items.Add(Close);
-            PopupMenu.Name = "PopupMenu" + tabItem.Name.Replace("TabItem", "");
-            return PopupMenu;
+            var close = new MenuItem
+            {
+                IsCheckable = false, 
+                Header = "Close"
+            };
+            close.Click += ContextMenu_OnCloseClick;
+            popupMenu.Items.Add(close);
+
+            return new ContentControl
+            {
+                Content = tabItem.Header,
+                ContextMenu = popupMenu
+            };
         }
 
         private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
         {
-            return;
         }
 
         private void ContextMenu_OnCloseClick(object menuItem, RoutedEventArgs e)
         {
-            TabItem ToDelete = null;
-            for (int i = 1; i < Tabs.Items.Count - 1; i++)
+            TabItem toDelete = null;
+            for (var i = 1; i < Tabs.Items.Count - 1; i++)
                 if (((TabItem)Tabs.Items[i]).Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
                 {
-                    ToDelete = (TabItem)Tabs.Items[i];
-                    Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
-                    ConferenceList.Delete(i - 1);
+                    toDelete = (TabItem)Tabs.Items[i];
+                    //Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
                     break;
                 }
-            Tabs.SelectedItem = Tabs.Items[0];
-            Tabs.Items.Remove(ToDelete);
-            return;
+            if(Equals(Tabs.SelectedItem, toDelete)) Tabs.SelectedIndex--;
+            if (toDelete != null) 
+                Tabs.Items.Remove(toDelete);
         }
     }
     

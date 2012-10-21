@@ -43,6 +43,7 @@ Thumbs.db
 iMessenger/bin
 iMessenger/obj
 iMessenger/Properties
+_ReSharper.iMessenger
 
 *.cd
 *.pdb

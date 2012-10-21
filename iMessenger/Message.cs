@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Net;
 
 namespace iMessenger
@@ -15,18 +13,14 @@ namespace iMessenger
         public String Text { get; set; }
         public String SenderName { get; set; }
         public IPAddress SenderIP { get; set; }
-        public String ConferenceNum { get; set; }
+        public String ConferenceNumber { get; set; }
         public List<String> Receivers { get; set; }
-        public MessageType Type { get; set; }    
-        
-        public Message()
-        {
-        }
+        public MessageType Type { get; set; }
 
-        public String getMessageString()
+        public String GetMessageString()
         {
 
-            String messageString = "[" + DateTime.Now.ToString("HH:mm:ss") + "] ";
+            var messageString = "[" + DateTime.Now.ToString("HH:mm:ss") + "] ";
             switch (Type)
             {
                 case MessageType.Common:
@@ -53,17 +47,17 @@ namespace iMessenger
         public static Message Deserialize( Byte[] buffer)
         {
             IFormatter formatter = new BinaryFormatter();
-            Stream s = new MemoryStream(buffer);
-            Message m = (Message)formatter.Deserialize(s);
+            var s = new MemoryStream(buffer);
+            var m = (Message)formatter.Deserialize(s);
             s.Close();
             return m;
         }
         public static Byte[] Serialize(Message m)
         {
             IFormatter formatter = new BinaryFormatter();
-            MemoryStream stream = new MemoryStream();
+            var stream = new MemoryStream();
             formatter.Serialize(stream, m);
-            Byte[] buffer = stream.ToArray();
+            var buffer = stream.ToArray();
             stream.Close();
             
             return buffer;
