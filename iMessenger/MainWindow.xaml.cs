@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace iMessenger
 {
@@ -63,7 +65,7 @@ namespace iMessenger
                                 {
                                     if (item.Content.ToString() == message.SenderName && item.IsChecked == true)
                                     {
-                                        ShowAt(i, GenerateStylyzedRun(message.GetMessageString()));
+                                        ShowAt(i, GenerateSystemRun(message.GetMessageString()));
                                     }
                                 }
                             }
@@ -80,13 +82,23 @@ namespace iMessenger
             rtb.ScrollToEnd();
         }   
 
-        private Run GenerateStylyzedRun(String text)
+        private Run GenerateSystemRun(String text)
         {
             return new Run
             {
                 Text = text, 
                 Foreground = Brushes.DarkGreen, 
                 FontStyle = FontStyles.Italic
+            };
+        }
+
+        private Run GenerateErrorRun(String text)
+        {
+            return new Run
+            {
+                Text = "### " + text + " ###",
+                Foreground = Brushes.Red,
+                FontStyle = FontStyles.Oblique
             };
         }
 
@@ -152,7 +164,7 @@ namespace iMessenger
                     Core.UserName = NickBox.Text;
                     return;
                 }
-                Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, new Run("This nickname is already in use!"))));
+                Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, GenerateErrorRun("This nickname is already in use!"))));
             }
             NickBox.Text = Core.UserName;
         }
@@ -307,11 +319,11 @@ namespace iMessenger
                 Background = ((TabItem)Tabs.Items[0]).Background,
                 Foreground = ((TabItem)Tabs.Items[0]).Foreground,
                 Name = "TabItem" + (Tabs.Items.Count - 1),
-                Header = "Conference#" + tag,
-                Tag = tag,
+                Tag = "Conference#" + tag,
                 Content = grid,
             };
             tabItem.Header = SetPopupMenu(tabItem);
+            tabItem.MouseDoubleClick += TabItemMouseDoubleClick;
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
         }
 
@@ -341,13 +353,57 @@ namespace iMessenger
 
             return new ContentControl
             {
-                Content = tabItem.Header,
+                Content = tabItem.Tag,
                 ContextMenu = popupMenu
             };
         }
 
         private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
         {
+            foreach(TabItem item in Tabs.Items)
+                if (item.Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
+                {
+                    item.Tag = CreateRenameBox(item);
+                    break;
+                }
+        }
+
+        private void ChangeConferenceName(object sender, RoutedEventArgs e)
+        {
+            foreach (TabItem item in Tabs.Items)
+                if (item.Tag != null && item.Tag.ToString() == "InRenameState")
+                {
+                    if (CheckUnicality(item, ((TextBox)sender).Text))
+                    {
+                        item.Tag = ((TextBox)sender).Text;
+                        item.Header = SetPopupMenu(item);
+                    }
+                    else
+                    {
+                        item.Header = ((TextBox) sender).Tag;
+                        ShowAt(Tabs.SelectedIndex, GenerateErrorRun("This name for conference is already in use!"));
+                        return;
+                    }
+                }
+        }
+
+        private bool CheckUnicality(TabItem item,String newName)
+        {
+            if ((item.Header.GetType().ToString().Contains("ContentControl") && ((ContentControl)item.Header).Content.ToString() == newName) || newName == "Common") //WARNING Костыль с коммоном
+                    return false;
+            return true;
+        }
+
+        private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            foreach(TabItem item in Tabs.Items)
+                if(item.Header.Equals(sender))
+                {
+                    ChangeConferenceName(sender, new RoutedEventArgs());
+                    item.Focus();
+                    return;
+                }
         }
 
         private void ContextMenu_OnCloseClick(object menuItem, RoutedEventArgs e)
@@ -363,6 +419,27 @@ namespace iMessenger
             if(Equals(Tabs.SelectedItem, toDelete)) Tabs.SelectedIndex--;
             if (toDelete != null) 
                 Tabs.Items.Remove(toDelete);
+        }
+
+        private void TabItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (((TabItem)sender).Tag.ToString() != "InRenameState")
+                ((TabItem)sender).Tag = CreateRenameBox((HeaderedContentControl)sender);
+        }
+
+        private String CreateRenameBox(HeaderedContentControl sender)
+        {
+            var RenameBox = new TextBox
+            {
+                Text = "",
+                Margin = new Thickness(((ContentControl)sender.Header).Margin.Left, ((ContentControl)sender.Header).Margin.Top, 0, 0)
+            };
+            RenameBox.KeyDown += OnRenameBoxKeyDown;
+            RenameBox.LostFocus += ChangeConferenceName;
+            RenameBox.Focus();
+            RenameBox.Tag = sender.Header;
+            sender.Header = RenameBox;
+            return "InRenameState";
         }
     }
     
