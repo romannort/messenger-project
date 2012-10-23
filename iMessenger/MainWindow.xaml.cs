@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace iMessenger
 {
@@ -320,14 +318,14 @@ namespace iMessenger
                 Foreground = ((TabItem)Tabs.Items[0]).Foreground,
                 Name = "TabItem" + (Tabs.Items.Count - 1),
                 Tag = "Conference#" + tag,
-                Content = grid,
+                Content = grid
             };
-            tabItem.Header = SetPopupMenu(tabItem);
+            tabItem.Header = SetHeader(tabItem);
             tabItem.MouseDoubleClick += TabItemMouseDoubleClick;
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
         }
 
-        private ContentControl SetPopupMenu(HeaderedContentControl tabItem)
+        private ContentControl SetHeader(HeaderedContentControl tabItem)
         {
             var popupMenu = new ContextMenu
             {
@@ -358,54 +356,6 @@ namespace iMessenger
             };
         }
 
-        private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
-        {
-            foreach(TabItem item in Tabs.Items)
-                if (item.Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
-                {
-                    item.Tag = CreateRenameBox(item);
-                    break;
-                }
-        }
-
-        private void ChangeConferenceName(object sender, RoutedEventArgs e)
-        {
-            foreach (TabItem item in Tabs.Items)
-                if (item.Tag != null && item.Tag.ToString() == "InRenameState")
-                {
-                    if (CheckUnicality(item, ((TextBox)sender).Text))
-                    {
-                        item.Tag = ((TextBox)sender).Text;
-                        item.Header = SetPopupMenu(item);
-                    }
-                    else
-                    {
-                        item.Header = ((TextBox) sender).Tag;
-                        ShowAt(Tabs.SelectedIndex, GenerateErrorRun("This name for conference is already in use!"));
-                        return;
-                    }
-                }
-        }
-
-        private bool CheckUnicality(TabItem item,String newName)
-        {
-            if ((item.Header.GetType().ToString().Contains("ContentControl") && ((ContentControl)item.Header).Content.ToString() == newName) || newName == "Common") //WARNING Костыль с коммоном
-                    return false;
-            return true;
-        }
-
-        private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Enter) return;
-            foreach(TabItem item in Tabs.Items)
-                if(item.Header.Equals(sender))
-                {
-                    ChangeConferenceName(sender, new RoutedEventArgs());
-                    item.Focus();
-                    return;
-                }
-        }
-
         private void ContextMenu_OnCloseClick(object menuItem, RoutedEventArgs e)
         {
             TabItem toDelete = null;
@@ -421,6 +371,58 @@ namespace iMessenger
                 Tabs.Items.Remove(toDelete);
         }
 
+        #region Rename conference
+
+        private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
+        {
+            foreach (TabItem item in Tabs.Items)
+                if (item.Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
+                {
+                    item.Tag = CreateRenameBox(item);
+                    break;
+                }
+        }
+
+        private void ChangeConferenceName(object sender)
+        {
+            foreach (TabItem item in Tabs.Items)
+                if (item.Tag != null && item.Tag.ToString() == "InRenameState")
+                {
+                    if (CheckUnicality(((TextBox)sender).Text))
+                    {
+                        item.Tag = ((TextBox)sender).Text;
+                        item.Header = SetHeader(item);
+                    }
+                    else
+                    {
+                        item.Header = ((TextBox)sender).Tag;
+                        ShowAt(Tabs.SelectedIndex, GenerateErrorRun("Conference with such name is already exist!"));
+                    }
+                    return;
+                }
+        }
+
+        private bool CheckUnicality(String newName)
+        {
+            foreach (TabItem item in Tabs.Items)
+                if ((item.Header.GetType().ToString().Contains("ContentControl")
+                    && ((ContentControl)item.Header).Content.ToString() == newName)
+                    || newName == "Common")
+                        return false;
+            return true;
+        }
+
+        private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            foreach (TabItem item in Tabs.Items)
+                if (item.Header.Equals(sender))
+                {
+                    ChangeConferenceName(sender);
+                    return;
+                }
+        }
+        
         private void TabItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (((TabItem)sender).Tag.ToString() != "InRenameState")
@@ -429,18 +431,27 @@ namespace iMessenger
 
         private String CreateRenameBox(HeaderedContentControl sender)
         {
-            var RenameBox = new TextBox
+            var renameBox = new TextBox
             {
-                Text = "",
+                Text = ((ContentControl)sender.Header).Content.ToString(),
                 Margin = new Thickness(((ContentControl)sender.Header).Margin.Left, ((ContentControl)sender.Header).Margin.Top, 0, 0)
             };
-            RenameBox.KeyDown += OnRenameBoxKeyDown;
-            RenameBox.LostFocus += ChangeConferenceName;
-            RenameBox.Focus();
-            RenameBox.Tag = sender.Header;
-            sender.Header = RenameBox;
+            renameBox.KeyDown += OnRenameBoxKeyDown;
+            renameBox.LostFocus += OnRenameBoxLostFocus;
+            renameBox.Focus();
+            renameBox.Tag = sender.Header;
+            sender.Header = renameBox;
             return "InRenameState";
         }
+
+        private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
+        {
+            foreach (TabItem item in Tabs.Items)
+                if (item.Tag != null && item.Tag.ToString() == "InRenameState")
+                    item.Header = (ContentControl)((TextBox) sender).Tag;
+        }
+
+        #endregion
     }
     
 }
