@@ -10,7 +10,6 @@ using System.Windows.Media;
 
 namespace iMessenger
 {
-
     public partial class MainWindow
     {
 
@@ -366,9 +365,14 @@ namespace iMessenger
                     //Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
                     break;
                 }
-            if(Equals(Tabs.SelectedItem, toDelete)) Tabs.SelectedIndex--;
-            if (toDelete != null) 
+            if( Equals(Tabs.SelectedItem, toDelete))
+            {
+                Tabs.SelectedIndex--;
+            }
+            if (toDelete != null)
+            {
                 Tabs.Items.Remove(toDelete);
+            }
         }
 
         #region Rename conference
@@ -433,17 +437,19 @@ namespace iMessenger
             };
             renameBox.KeyDown += OnRenameBoxKeyDown;
             renameBox.LostFocus += OnRenameBoxLostFocus;
-            renameBox.Focus();
+            renameBox.SelectAll();
             sender.Header = renameBox;
             return "InRenameState";
         }
 
         private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
         {
-            foreach (TabItem item in Tabs.Items.Cast<TabItem>().Where(item => item.Tag != null && item.Tag.ToString() == "InRenameState"))
-            {
-                item.Header = ((TextBox) sender).Tag;
-            }
+            TabItem tabItem =
+                Tabs.Items.Cast<TabItem>().FirstOrDefault(
+                    item => item.Tag != null && item.Tag.ToString() == "InRenameState");
+
+            // null here almost always
+            tabItem.Header = ((TextBox)sender).Tag;
         }
         #endregion
     }
