@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -110,9 +111,8 @@ namespace iMessenger
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
             {
-                Core.SendMessage(Tabs.SelectedIndex == 0
-                                     ? GenerateMessage(GetMessageText(), MessageType.Common)
-                                     : GenerateMessage(GetMessageText(), MessageType.Conference));
+                MessageType messageType = Tabs.SelectedIndex == 0 ? MessageType.Common : MessageType.Conference;
+                Core.SendMessage(GenerateMessage(GetMessageText(), messageType));
             }
         }
 
@@ -388,7 +388,7 @@ namespace iMessenger
             foreach (TabItem item in Tabs.Items)
                 if (item.Tag != null && item.Tag.ToString() == "InRenameState")
                 {
-                    if (CheckUnicality(((TextBox)sender).Text))
+                    if (IsNewNameUnique(((TextBox)sender).Text))
                     {
                         item.Tag = ((TextBox)sender).Text;
                         item.Header = SetHeader(item);
@@ -402,14 +402,11 @@ namespace iMessenger
                 }
         }
 
-        private bool CheckUnicality(String newName)
+        private bool IsNewNameUnique(String newName)
         {
-            foreach (TabItem item in Tabs.Items)
-                if ((item.Header.GetType().ToString().Contains("ContentControl")
-                    && ((ContentControl)item.Header).Content.ToString() == newName)
-                    || newName == "Common")
-                        return false;
-            return true;
+            return Tabs.Items.Cast<TabItem>()
+                .All(item => (!item.Header.GetType().ToString().Contains("ContentControl") || 
+                    ((ContentControl) item.Header).Content.ToString() != newName) && newName != "Common");
         }
 
         private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
@@ -448,7 +445,7 @@ namespace iMessenger
         {
             foreach (TabItem item in Tabs.Items)
                 if (item.Tag != null && item.Tag.ToString() == "InRenameState")
-                    item.Header = (ContentControl)((TextBox) sender).Tag;
+                    item.Header = ((TextBox) sender).Tag;
         }
 
         #endregion
