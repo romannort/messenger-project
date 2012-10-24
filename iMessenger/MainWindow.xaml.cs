@@ -375,31 +375,28 @@ namespace iMessenger
 
         private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
         {
-            foreach (TabItem item in Tabs.Items)
-                if (item.Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
-                {
-                    item.Tag = CreateRenameBox(item);
-                    break;
-                }
+            TabItem tabItem = Tabs.Items.Cast<TabItem>().FirstOrDefault(
+                    item => (item).Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem")
+                    );
+            tabItem.Tag = CreateRenameBox(tabItem);
         }
 
         private void ChangeConferenceName(object sender)
         {
-            foreach (TabItem item in Tabs.Items)
-                if (item.Tag != null && item.Tag.ToString() == "InRenameState")
+            foreach (TabItem item in Tabs.Items.Cast<TabItem>().Where(item => item.Tag != null && item.Tag.ToString() == "InRenameState"))
+            {
+                if (IsNewNameUnique(((TextBox)sender).Text))
                 {
-                    if (IsNewNameUnique(((TextBox)sender).Text))
-                    {
-                        item.Tag = ((TextBox)sender).Text;
-                        item.Header = SetHeader(item);
-                    }
-                    else
-                    {
-                        item.Header = ((TextBox)sender).Tag;
-                        ShowAt(Tabs.SelectedIndex, GenerateErrorRun("Conference with such name is already exist!"));
-                    }
-                    return;
+                    item.Tag = ((TextBox)sender).Text;
+                    item.Header = SetHeader(item);
                 }
+                else
+                {
+                    item.Header = ((TextBox)sender).Tag;
+                    ShowAt(Tabs.SelectedIndex, GenerateErrorRun("Conference with such name is already exist!"));
+                }
+                return;
+            }
         }
 
         private bool IsNewNameUnique(String newName)
@@ -412,42 +409,42 @@ namespace iMessenger
         private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
-            foreach (TabItem item in Tabs.Items)
-                if (item.Header.Equals(sender))
-                {
-                    ChangeConferenceName(sender);
-                    return;
-                }
+            if (Tabs.Items.Cast<TabItem>().Any(item => item.Header.Equals(sender)))
+            {
+                ChangeConferenceName(sender);
+            }
         }
-        
+
         private void TabItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (((TabItem)sender).Tag.ToString() != "InRenameState")
-                ((TabItem)sender).Tag = CreateRenameBox((HeaderedContentControl)sender);
+            {
+                ((TabItem)sender).Tag = CreateRenameBox((HeaderedContentControl) sender);
+            }
         }
 
         private String CreateRenameBox(HeaderedContentControl sender)
         {
-            var renameBox = new TextBox
+            TextBox renameBox = new TextBox
             {
                 Text = ((ContentControl)sender.Header).Content.ToString(),
-                Margin = new Thickness(((ContentControl)sender.Header).Margin.Left, ((ContentControl)sender.Header).Margin.Top, 0, 0)
+                Margin = new Thickness(((ContentControl)sender.Header).Margin.Left, ((ContentControl)sender.Header).Margin.Top, 0, 0),
+                Tag = sender.Header
             };
             renameBox.KeyDown += OnRenameBoxKeyDown;
             renameBox.LostFocus += OnRenameBoxLostFocus;
             renameBox.Focus();
-            renameBox.Tag = sender.Header;
             sender.Header = renameBox;
             return "InRenameState";
         }
 
         private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
         {
-            foreach (TabItem item in Tabs.Items)
-                if (item.Tag != null && item.Tag.ToString() == "InRenameState")
-                    item.Header = ((TextBox) sender).Tag;
+            foreach (TabItem item in Tabs.Items.Cast<TabItem>().Where(item => item.Tag != null && item.Tag.ToString() == "InRenameState"))
+            {
+                item.Header = ((TextBox) sender).Tag;
+            }
         }
-
         #endregion
     }
     
