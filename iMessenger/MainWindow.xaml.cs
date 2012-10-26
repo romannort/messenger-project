@@ -15,6 +15,7 @@ namespace iMessenger
 
         public Core Core { get; set; }
         readonly Roster<User> _roster;
+        private int inRenameState;
 
         public MainWindow()
         {
