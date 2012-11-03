@@ -14,7 +14,10 @@ namespace iMessenger
         public static void OnNewMessage(MsgReceiveEventArgs e)
         {
             EventHandler<MsgReceiveEventArgs> temp = Interlocked.CompareExchange(ref NewMessage, null, null);
-            if (temp != null) temp(null, e);
+            if (temp != null)
+            {
+                temp(null, e);
+            }
         }
     }
 }

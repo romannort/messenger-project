@@ -7,16 +7,27 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using iMessenger.Helpers;
 
 namespace iMessenger
 {
+    /// <summary>
+    /// interaction logic for applcation window
+    /// </summary>
     public partial class MainWindow
     {
 
+        /// <summary>
+        /// Reference to application Core
+        /// </summary>
         public Core Core { get; set; }
-        readonly Roster<User> _roster;
+        private readonly Roster<User> _roster;
         private int inRenameState;
 
+        /// <summary>
+        /// Default constructor.
+        /// Initializes all components of window.
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
@@ -30,6 +41,10 @@ namespace iMessenger
             MessageBox.Focus();
         }
 
+        /// <summary>
+        /// Prints message text in message area.
+        /// </summary>
+        /// <param name="message"> Message object to print </param>
         public void ShowMessage(Message message)
         {
             Dispatcher.Invoke((ThreadStart)delegate
@@ -47,24 +62,24 @@ namespace iMessenger
                             {
                                 if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.ConferenceNumber)
                                 {
-                                    ShowAt(i, new Run(message.GetMessageString()));
+                                    ShowAt(i, RunBuilder.DefaultRun(message));
                                     return;
                                 }
                             }
                             CreateTab(message);
-                            ShowAt(Tabs.Items.Count - 2, new Run(message.GetMessageString()));
+                            ShowAt(Tabs.Items.Count - 2, RunBuilder.DefaultRun(message));
                             break;
                         }
                     default:
                         {
                             for (var i = 0; i < Tabs.Items.Count - 1; i++)
                             {
-                                var lb = (ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0];
+                                ListBox lb = (ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0];
                                 foreach (CheckBox item in lb.Items)
                                 {
                                     if (item.Content.ToString() == message.SenderName && item.IsChecked == true)
                                     {
-                                        ShowAt(i, GenerateSystemRun(message.GetMessageString()));
+                                        ShowAt(i, RunBuilder.SystemRun(message));
                                     }
                                 }
                             }
@@ -76,30 +91,12 @@ namespace iMessenger
 
         private void ShowAt(int idx, Run run)
         {
-            var rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[idx]).Content).Children[1];
+            RichTextBox rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[idx]).Content).Children[1];
             rtb.Document.Blocks.Add(new Paragraph(run));
             rtb.ScrollToEnd();
-        }   
-
-        private Run GenerateSystemRun(String text)
-        {
-            return new Run
-            {
-                Text = text, 
-                Foreground = Brushes.DarkGreen, 
-                FontStyle = FontStyles.Italic
-            };
         }
 
-        private Run GenerateErrorRun(String text)
-        {
-            return new Run
-            {
-                Text = "### " + text + " ###",
-                Foreground = Brushes.Red,
-                FontStyle = FontStyles.Oblique
-            };
-        }
+
 
         private void ChatClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -109,19 +106,22 @@ namespace iMessenger
 
         private void SendButtonClick(object sender, RoutedEventArgs e)
         {
-            if (!String.IsNullOrEmpty(MessageBox.Text))
+            if (String.IsNullOrEmpty(MessageBox.Text))
             {
-                MessageType messageType = Tabs.SelectedIndex == 0 ? MessageType.Common : MessageType.Conference;
-                Core.SendMessage(GenerateMessage(GetMessageText(), messageType));
+                return;
             }
+            MessageType messageType = Tabs.SelectedIndex == 0 ? MessageType.Common : MessageType.Conference;
+            Core.SendMessage(GenerateMessage(GetMessageText(), messageType));
         }
 
         private void MessageBoxKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
+            {
                 SendButtonClick(sender, new RoutedEventArgs());
+            }
         }
-        
+
         private String GetMessageText()
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
@@ -130,10 +130,17 @@ namespace iMessenger
                 MessageBox.Clear();
                 MessageBox.Focus();
                 return data;
-            }  
+            }
             return null;
         }
 
+
+        /// <summary>
+        /// Generates Message from text data and sets appropriate MessageType for it.
+        /// </summary>
+        /// <param name="data"> Message text </param>
+        /// <param name="type"> Message type. </param>
+        /// <returns>New Message object with all fields set. </returns>
         public Message GenerateMessage(String data, MessageType type)
         {
             return new Message
@@ -146,12 +153,12 @@ namespace iMessenger
                 ConferenceNumber = GetConferenceNumber()
             };
         }
-        
+
         private void NickBoxLostFocus(object sender, RoutedEventArgs e)
         {
             NicknameChanging();
         }
-        
+
         private void NicknameChanging()
         {
             if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.UserName)
@@ -162,20 +169,24 @@ namespace iMessenger
                     Core.UserName = NickBox.Text;
                     return;
                 }
-                Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, GenerateErrorRun("This nickname is already in use!"))));
+                Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, RunBuilder.ErrorRun("This nickname is already in use!"))));
             }
             NickBox.Text = Core.UserName;
         }
 
+        /// <summary>
+        /// Adds line with user nickname to Connection list.
+        /// </summary>
+        /// <param name="newNick">String with user nickname.</param>
         public void AddAtConnectList(string newNick)
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
                 _roster.Add(new User(newNick));
 
-                for (var i = 0; i < Tabs.Items.Count-1; i++)
+                for (int i = 0; i < Tabs.Items.Count - 1; i++)
                 {
-                    var item = new CheckBox
+                    CheckBox item = new CheckBox
                     {
                         Content = newNick,
                         IsChecked = i == 0,
@@ -186,13 +197,15 @@ namespace iMessenger
             });
         }
 
-        public SolidColorBrush RandomColor()
+        private static SolidColorBrush RandomColor()
         {
-            var rgb = new byte[3];
-            var r = new Random();
+            Byte[] rgb = new Byte[3];
+            Random r = new Random();
             r.NextBytes(rgb);
-            for (var i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++)
+            {
                 rgb[i] = (byte)(rgb[i] % 128);
+            }
 
             return new SolidColorBrush(Color.FromRgb(rgb[0], rgb[1], rgb[2]));
         }
@@ -201,13 +214,13 @@ namespace iMessenger
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                var idx = _roster.IndexOf(new User(oldNick));
+                int idx = _roster.IndexOf(new User(oldNick));
                 _roster.Change(new User(oldNick), new User(newNick));
 
-                for (var i = 0; i < Tabs.Items.Count-1; i++)
+                for (int i = 0; i < Tabs.Items.Count - 1; i++)
                 {
-                    var lb = ((ListBox) ((Grid) ((TabItem) Tabs.Items[i]).Content).Children[0]);
-                    var toChange = (CheckBox)lb.Items[idx];
+                    ListBox lb = ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]);
+                    CheckBox toChange = (CheckBox)lb.Items[idx];
                     lb.Items.RemoveAt(idx);
                     toChange.Content = newNick;
                     lb.Items.Insert(idx, toChange);
@@ -219,42 +232,43 @@ namespace iMessenger
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
-                var idx = _roster.IndexOf(new User(oldNick));
+                int idx = _roster.IndexOf(new User(oldNick));
                 _roster.Delete(new User(oldNick));
 
-                for (var i = 0; i < Tabs.Items.Count - 1; i++)
+                for (int i = 0; i < Tabs.Items.Count - 1; i++)
                 {
-                   ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.RemoveAt(idx);
+                    ((ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0]).Items.RemoveAt(idx);
                 }
             });
         }
 
         private void NickBoxKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key != Key.Enter) return;
+            if (e.Key != Key.Enter)
+            {
+                return;
+            }
             NicknameChanging();
             MessageBox.Focus();
         }
 
         private List<String> GetReceiversList()
         {
-            var receiversList = new List<String>();
-            Dispatcher.Invoke((ThreadStart)delegate
-            {
-                foreach (CheckBox a in ((ListBox)((Grid)((TabItem)Tabs.Items[Tabs.SelectedIndex]).Content).Children[0]).Items)
-                {
-                    if (a.IsChecked == true)
-                    {
-                        receiversList.Add(a.Content.ToString());
-                    }
-                }   
-            });
+            List<string> receiversList = new List<String>();
+            Dispatcher.Invoke((ThreadStart)(() =>
+                                            receiversList.AddRange(
+                                                from CheckBox a in
+                                                    ((ListBox)
+                                                     ((Grid) ((TabItem) Tabs.Items[Tabs.SelectedIndex]).Content).
+                                                         Children[0]).Items
+                                                where a.IsChecked == true
+                                                select a.Content.ToString())));
             return receiversList;
         }
 
         private String GetConferenceNumber()
         {
-            var res = "";
+            string res = "";
             Dispatcher.Invoke((ThreadStart)delegate
             {
                 res = ((TabItem)Tabs.SelectedItem).Tag.ToString();
@@ -264,19 +278,21 @@ namespace iMessenger
 
         private void TabsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (Tabs.SelectedIndex != Tabs.Items.Count - 1) return;
+            if (Tabs.SelectedIndex != Tabs.Items.Count - 1)
+            {
+                return;
+            }
             CreateTab(null);
             Tabs.SelectedIndex -= 1; // Set  current selected tab to new created tab.
         }
 
         private void CreateTab(Message message)
         {
-            var grid = new Grid
+            Grid grid = new Grid
             {
                 Margin = new Thickness(0, -1, 0, 26)
             };
-
-            var rtb = new RichTextBox
+            RichTextBox rtb = new RichTextBox
             {
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(0, 0, 0, -24),
@@ -289,7 +305,7 @@ namespace iMessenger
                 Resources = ChatArea0.Resources
             };
 
-            var lb = new ListBox
+            ListBox lb = new ListBox
             {
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(424, 0, 0, -24),
@@ -298,7 +314,6 @@ namespace iMessenger
 
             foreach (CheckBox cb in ConnectList0.Items)
             {
-
                 lb.Items.Add(new CheckBox
                 {
                     Content = cb.Content,
@@ -311,8 +326,8 @@ namespace iMessenger
             grid.Children.Add(lb);
             grid.Children.Add(rtb);
 
-            var tag = (message == null ? DateTime.Now.ToString("ddHHmmss") : message.ConferenceNumber);
-            var tabItem = new TabItem
+            string tag = (message == null ? DateTime.Now.ToString("ddHHmmss") : message.ConferenceNumber);
+            TabItem tabItem = new TabItem
             {
                 Background = ((TabItem)Tabs.Items[0]).Background,
                 Foreground = ((TabItem)Tabs.Items[0]).Foreground,
@@ -325,29 +340,16 @@ namespace iMessenger
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
         }
 
-        private ContentControl SetHeader(HeaderedContentControl tabItem)
+        private ContentControl SetHeader(FrameworkElement tabItem)
         {
-            var popupMenu = new ContextMenu
+            ContextMenu popupMenu = new ContextMenu
             {
                 Foreground = new SolidColorBrush(Colors.DarkRed),
                 Name = "PopupMenu" + tabItem.Name.Replace("TabItem", "")
             };
 
-            var rename = new MenuItem
-            {
-                IsCheckable = false, 
-                Header = "Rename"
-            };
-            rename.Click += ContextMenu_OnRenameClick;
-            popupMenu.Items.Add(rename);
-
-            var close = new MenuItem
-            {
-                IsCheckable = false, 
-                Header = "Close"
-            };
-            close.Click += ContextMenu_OnCloseClick;
-            popupMenu.Items.Add(close);
+            popupMenu.Items.Add(MenuItemBuilder.Build("Rename", ContextMenu_OnRenameClick));
+            popupMenu.Items.Add(MenuItemBuilder.Build("Close", ContextMenu_OnCloseClick));
 
             return new ContentControl
             {
@@ -366,7 +368,7 @@ namespace iMessenger
                     //Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
                     break;
                 }
-            if( Equals(Tabs.SelectedItem, toDelete))
+            if (Equals(Tabs.SelectedItem, toDelete))
             {
                 Tabs.SelectedIndex--;
             }
@@ -393,7 +395,7 @@ namespace iMessenger
             }
             else
             {
-                ShowAt(inRenameState, GenerateErrorRun("Conference with such name is already exist!"));
+                ShowAt(inRenameState, RunBuilder.ErrorRun("Conference with such name is already exist!"));
                 Tabs.SelectedIndex = inRenameState;
                 ThreadPool.QueueUserWorkItem(a =>
                 {
@@ -412,18 +414,15 @@ namespace iMessenger
 
         private bool CheckUnique(String newName)
         {
-            foreach (TabItem item in Tabs.Items)
-                if ((item.Header.GetType().ToString().Contains("ContentControl")
-                    && ((ContentControl)item.Header).Content.ToString() == newName)
-                    && item.Equals(Tabs.Items[inRenameState])
-                    || newName == "Common" || newName == "+")
-                        return false;
-            return true;
+            return Tabs.Items.Cast<TabItem>().All(item => ((!item.Header.GetType().ToString().Contains("ContentControl") || ((ContentControl)item.Header).Content.ToString() != newName) || !item.Equals(Tabs.Items[inRenameState])) && newName != "Common" && newName != "+");
         }
 
         private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key != Key.Enter) return;
+            if (e.Key != Key.Enter)
+            {
+                return;
+            }
             MessageBox.Focus();
         }
 
@@ -438,7 +437,7 @@ namespace iMessenger
 
         private void CreateRenameBox(ContentControl sender)
         {
-            var renameBox = new TextBox
+            TextBox renameBox = new TextBox
             {
                 SelectedText = sender.Content.ToString(),
                 Tag = sender,
@@ -457,8 +456,6 @@ namespace iMessenger
         {
             ChangeConferenceName(((TextBox)sender).Text);
         }
-
         #endregion
     }
-    
 }
