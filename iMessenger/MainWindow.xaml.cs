@@ -320,12 +320,11 @@ namespace iMessenger
                 Tag = "Conference#" + tag,
                 Content = grid
             };
-            tabItem.Header = SetHeader(tabItem);
-            tabItem.MouseDoubleClick += TabItemMouseDoubleClick;
+            SetHeader(tabItem);
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
         }
 
-        private ContentControl SetHeader(HeaderedContentControl tabItem)
+        private void SetHeader(HeaderedContentControl tabItem)
         {
             var popupMenu = new ContextMenu
             {
@@ -349,11 +348,13 @@ namespace iMessenger
             close.Click += ContextMenu_OnCloseClick;
             popupMenu.Items.Add(close);
 
-            return new ContentControl
+            tabItem.Header = new ContentControl
             {
                 Content = tabItem.Tag,
                 ContextMenu = popupMenu
             };
+
+            ((ContentControl)tabItem.Header).MouseDoubleClick += TabItemMouseDoubleClick;
         }
 
         private void ContextMenu_OnCloseClick(object menuItem, RoutedEventArgs e)
@@ -381,29 +382,43 @@ namespace iMessenger
         private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
         {
             TabItem renameItem = Tabs.Items.Cast<TabItem>().First(item => item.Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"));
+            Tabs.SelectedItem = renameItem;
             inRenameState = Tabs.SelectedIndex;
-            CreateRenameBox(renameItem);
+            CreateRenameBox((ContentControl)renameItem.Header);
+        }
+
+        private void CreateRenameBox(ContentControl sender)
+        {
+            TextBox renameBox = new TextBox
+            {
+                SelectedText = sender.Content.ToString(),
+                Tag = sender,
+            };
+            renameBox.KeyDown += OnRenameBoxKeyDown;
+            renameBox.LostFocus += OnRenameBoxLostFocus;
+            sender.Content = renameBox;
+            ThreadPool.QueueUserWorkItem(a =>
+            {
+                Thread.Sleep(10);
+                renameBox.Dispatcher.Invoke(new Action(() => renameBox.Focus()));
+            });
         }
 
         private void ChangeConferenceName(String text)
         {
             if (CheckUnique(text))
             {
-                SetHeader(text);
+                ResetHeader(text);
             }
             else
             {
-                ShowAt(inRenameState, GenerateErrorRun("Conference with such name is already exist!"));
+                ShowAt(inRenameState, GenerateErrorRun("Conference with name '" + text + "' is already exist!"));
                 Tabs.SelectedIndex = inRenameState;
-                ThreadPool.QueueUserWorkItem(a =>
-                {
-                    Thread.Sleep(10);
-                    Dispatcher.Invoke(new Action(() => ((TextBox)((ContentControl)((TabItem)Tabs.Items[inRenameState]).Header).Content).Focus()));
-                });
+                SetHeader((TabItem)Tabs.SelectedItem);
             }
         }
 
-        private void SetHeader(String text)
+        private void ResetHeader(String text)
         {
             ((TabItem)Tabs.Items[inRenameState]).Header =
                 ((TextBox)((ContentControl)((TabItem)Tabs.Items[inRenameState]).Header).Content).Tag;
@@ -412,11 +427,12 @@ namespace iMessenger
 
         private bool CheckUnique(String newName)
         {
+            if(newName == "Common" || newName == "+")
+                return false;
             foreach (TabItem item in Tabs.Items)
-                if ((item.Header.GetType().ToString().Contains("ContentControl")
-                    && ((ContentControl)item.Header).Content.ToString() == newName)
-                    && item.Equals(Tabs.Items[inRenameState])
-                    || newName == "Common" || newName == "+")
+                if (item.Header.GetType().ToString().Contains("ContentControl")
+                    && (((ContentControl)item.Header).Content.ToString() == newName)
+                    && !item.Equals(Tabs.Items[inRenameState]))
                         return false;
             return true;
         }
@@ -434,24 +450,7 @@ namespace iMessenger
                 inRenameState = Tabs.SelectedIndex;
                 CreateRenameBox((ContentControl)sender);
             }
-        }
-
-        private void CreateRenameBox(ContentControl sender)
-        {
-            var renameBox = new TextBox
-            {
-                SelectedText = sender.Content.ToString(),
-                Tag = sender,
-            };
-            renameBox.KeyDown += OnRenameBoxKeyDown;
-            renameBox.LostFocus += OnRenameBoxLostFocus;
-            sender.Content = renameBox;
-            ThreadPool.QueueUserWorkItem(a =>
-                  {
-                      Thread.Sleep(10);
-                      renameBox.Dispatcher.Invoke(new Action(() => renameBox.Focus()));
-                  });
-        }
+       }
 
         private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
         {
