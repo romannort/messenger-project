@@ -35,22 +35,21 @@ namespace iMessenger
         }
         private void StartReceiving()
         {
-            var receivingThread = new Thread(ReceiveMessages);
+            Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
         public IPAddress GetUserIP()
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
             return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork");
         }
 
         public void SendMessage(Message m)
         {
-            var data = Message.Serialize(m);
-
-            var sendClient = new UdpClient();
+            byte[] data = Message.Serialize(m);
+            UdpClient sendClient = new UdpClient();
             sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            var endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
             sendClient.Send(data, data.Length, endPoint);
             sendClient.Close();
         }
@@ -82,7 +81,9 @@ namespace iMessenger
                     {
                         Window.AddAtConnectList(e.Message.SenderName);
                         if (e.Message.SenderName != UserName)
+                        {
                             SendMessage(Window.GenerateMessage("", MessageType.Echo));
+                        }
                         break;
                     }
                 case MessageType.ChangeName:
@@ -93,13 +94,17 @@ namespace iMessenger
                 case MessageType.Echo:
                     {
                         if (e.Message.SenderName != UserName)
+                        {
                             Window.AddAtConnectList(e.Message.SenderName);
+                        }
                         return;
                     }
                 default:
                     {
                         if (e.Message.Receivers.Contains(UserName) == false)
+                        {
                             return;
+                        }
                         break;
                     }
             }

@@ -11,15 +11,17 @@ namespace iMessenger
         public static void WriteLog(Message m)
         {
             while(true)
+            { 
                 try
                 {
                     File.AppendAllText(LogFile, m.GetMessageString() + "\n", Encoding.Default);
                     return;
                 }
-            catch(ExecutionEngineException e)
+                catch(IOException e)
                 {
 
                 }
+            }
         }
         
     }

@@ -15,13 +15,17 @@ namespace iMessenger
             get
             {
                 if (index <= _source.Count - 1)
+                {
                     return _source.ElementAt(index);
+                }
                 throw new ArgumentOutOfRangeException();
             }
             set
             {
                 if (index <= _source.Count - 1)
+                {
                     _source.Insert(index, value);
+                }
                 else
                     throw new ArgumentOutOfRangeException();
             }
@@ -57,10 +61,12 @@ namespace iMessenger
         public int IndexOf(TItem item)
         {
             for (int i = 0; i < _source.Count; i++)
+            { 
                 if (item.Equals(_source[i]))
                 {
                     return i;
                 }
+            }
             return -1;
         }
 

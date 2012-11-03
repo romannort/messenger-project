@@ -58,7 +58,7 @@ namespace iMessenger
                         }
                     case MessageType.Conference:
                         {
-                            for (var i = 1; i < Tabs.Items.Count - 1; i++)
+                            for (int i = 1; i < Tabs.Items.Count - 1; i++)
                             {
                                 if (((TabItem)Tabs.Items[i]).Tag.ToString() == message.ConferenceNumber)
                                 {
@@ -72,7 +72,7 @@ namespace iMessenger
                         }
                     default:
                         {
-                            for (var i = 0; i < Tabs.Items.Count - 1; i++)
+                            for (int i = 0; i < Tabs.Items.Count - 1; i++)
                             {
                                 ListBox lb = (ListBox)((Grid)((TabItem)Tabs.Items[i]).Content).Children[0];
                                 foreach (CheckBox item in lb.Items)
@@ -362,12 +362,15 @@ namespace iMessenger
         {
             TabItem toDelete = null;
             for (var i = 1; i < Tabs.Items.Count - 1; i++)
-                if (((TabItem)Tabs.Items[i]).Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
+            {
+                if (((TabItem) Tabs.Items[i]).Name ==
+                    ((ContextMenu) ((MenuItem) menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
                 {
-                    toDelete = (TabItem)Tabs.Items[i];
+                    toDelete = (TabItem) Tabs.Items[i];
                     //Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
                     break;
                 }
+            }
             if( Equals(Tabs.SelectedItem, toDelete))
             {
                 Tabs.SelectedIndex--;
@@ -429,12 +432,18 @@ namespace iMessenger
         private bool CheckUnique(String newName)
         {
             if(newName == "Common" || newName == "+")
+            {
                 return false;
+            }
             foreach (TabItem item in Tabs.Items)
+            { 
                 if (item.Header.GetType().ToString().Contains("ContentControl")
                     && (((ContentControl)item.Header).Content.ToString() == newName)
                     && !item.Equals(Tabs.Items[inRenameState]))
-                        return false;
+                {
+                    return false;
+                }
+            }
             return true;
         }
 
