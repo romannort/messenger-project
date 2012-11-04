@@ -36,7 +36,7 @@ namespace iMessenger
 
         private void ChatLoaded(object sender, RoutedEventArgs e)
         {
-            NickBox.Text = Core.UserName;
+            NickBox.Text = Core.User.Name;
             Core.SendMessage(GenerateMessage(String.Empty, MessageType.JoinCommon));
             MessageBox.Focus();
         }
@@ -141,8 +141,8 @@ namespace iMessenger
         {
             return new Message
             {
-                SenderName = Core.UserName,
-                SenderIP = Core.UserIP,
+                SenderName = Core.User.Name,
+                SenderIP = Core.User.IP,
                 Text = data,
                 Type = type,
                 Receivers = GetReceiversList(),
@@ -157,17 +157,17 @@ namespace iMessenger
 
         private void NicknameChanging()
         {
-            if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.UserName)
+            if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.User.Name)
             {
                 if (_roster.IndexOf(new User(NickBox.Text)) == -1)
                 {
                     Core.SendMessage(GenerateMessage(NickBox.Text, MessageType.ChangeName));
-                    Core.UserName = NickBox.Text;
+                    Core.User.Name = NickBox.Text;
                     return;
                 }
                 Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, RunBuilder.ErrorRun("This nickname is already in use!"))));
             }
-            NickBox.Text = Core.UserName;
+            NickBox.Text = Core.User.Name;
         }
 
         /// <summary>

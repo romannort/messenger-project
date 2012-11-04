@@ -3,20 +3,20 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
-
 namespace iMessenger
 {
     public class Core
     {
         public MainWindow Window;
-        public String UserName { get; set; }
-        public IPAddress UserIP;
+        //public String UserName { get; set; }
+        //public IPAddress UserIP;
+        public readonly User User = new User();
 
         public Core(MainWindow window)
         {
             Window = window;
-            UserName = "User#" + DateTime.Now.ToString("ddHHmmss");
-            UserIP = GetUserIP();
+            User.Name = "User#" + DateTime.Now.ToString("ddHHmmss");
+            User.IP = GetUserIP();
             MessageManager.NewMessage += OnMessageReceive;
             Receiver.Current.Start();
         }
@@ -49,7 +49,7 @@ namespace iMessenger
                 case MessageType.JoinCommon:
                     {
                         Window.AddAtConnectList(e.Message.SenderName);
-                        if (e.Message.SenderName != UserName)
+                        if (e.Message.SenderName != User.Name)
                         {
                             SendMessage(Window.GenerateMessage(String.Empty , MessageType.Echo));
                         }
@@ -62,7 +62,7 @@ namespace iMessenger
                     }
                 case MessageType.Echo:
                     {
-                        if (e.Message.SenderName != UserName)
+                        if (e.Message.SenderName != User.Name)
                         {
                             Window.AddAtConnectList(e.Message.SenderName);
                         }
@@ -70,7 +70,7 @@ namespace iMessenger
                     }
                 default:
                     {
-                        if (e.Message.Receivers.Contains(UserName) == false)
+                        if (e.Message.Receivers.Contains(User.Name) == false)
                         {
                             return;
                         }

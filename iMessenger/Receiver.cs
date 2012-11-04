@@ -32,11 +32,19 @@ namespace iMessenger
 
         private void ConfigureReceiver()
         {
-            receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
-            receiveClient = new UdpClient();
-            receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            receiveClient.ExclusiveAddressUse = false;
-            receiveClient.Client.Bind(receiveEndPoint);
+            try
+            {
+                receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
+                receiveClient = new UdpClient();
+                receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                receiveClient.ExclusiveAddressUse = false;
+                receiveClient.Client.Bind(receiveEndPoint);
+            }
+            catch (SocketException e)
+            {
+                // Possible socket exception while opening socket.
+            }
+            
         }
         
         public void Start()

@@ -1,39 +1,47 @@
 ﻿using System;
+using System.Net;
 
 namespace iMessenger
 {
-    class User : IComparable
+    public class User : IComparable
     {
+
+        public String Name { get; set; }
+        public IPAddress IP { get; set; }
+
+        public User()
+        {
+            
+        }
+
+        public User(String name )
+        {
+            Name = name;
+        }
+
         protected bool Equals(User other)
         {
-            return string.Equals(Nick, other.Nick);
+            return string.Equals(Name, other.Name);
         }
 
         public override int GetHashCode()
         {
-            return (Nick != null ? Nick.GetHashCode() : 0);
-        }
-
-        public String Nick;
-        
-        public User(String newNick)
-        {
-            Nick = newNick;
+            return (Name != null ? Name.GetHashCode() : 0);
         }
 
         public override string ToString()
         {
-            return Nick;
+            return Name;
         }
 
         int IComparable.CompareTo(object obj)
         {
-            return obj == null ? 0 : Nick.CompareTo(((User) obj).Nick);
+            return obj == null ? 0 : System.String.Compare(Name, ((User) obj).Name, StringComparison.Ordinal);
         }
 
         public override bool Equals(object obj)
         {
-            return ((User)obj).Nick == Nick;
+            return ((User)obj).Name == Name;
         }
     }
 }
