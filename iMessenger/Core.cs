@@ -7,11 +7,18 @@ namespace iMessenger
 {
     public class Core
     {
+        /// <summary>
+        /// Reference to application MainWindow
+        /// </summary>
         public MainWindow Window;
         //public String UserName { get; set; }
         //public IPAddress UserIP;
         public readonly User User = new User();
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="window"> Pointer at MainWindow </param>
         public Core(MainWindow window)
         {
             Window = window;
@@ -21,12 +28,24 @@ namespace iMessenger
             Receiver.Current.Start();
         }
 
+        /// <summary>
+        /// Configures receiver
+        /// </summary>
+
+        /// <summary>
+        /// Gets user IP
+        /// </summary>
+        /// <returns> Current IP </returns>
         public IPAddress GetUserIP()
         {
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
             return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork");
         }
 
+        /// <summary>
+        /// Sends message
+        /// </summary>
+        /// <param name="m"> Message for sending </param>
         public void SendMessage(Message m)
         {
             Byte[] data = Message.Serialize(m);
@@ -37,6 +56,11 @@ namespace iMessenger
             sendClient.Close();
         }
         
+        /// <summary>
+        /// Processing of received message
+        /// </summary>
+        /// <param name="sender"> Pointer at </param>
+        /// <param name="e"> MsgReceiveEvent arguments </param>
         private void OnMessageReceive(object sender, MsgReceiveEventArgs e)
         {
             switch (e.Message.Type)

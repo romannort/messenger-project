@@ -10,6 +10,11 @@ namespace iMessenger
         private readonly IList<TItem> _source;
         public TItem Current { get; set; }
 
+        /// <summary>
+        /// Gets item by index
+        /// </summary>
+        /// <param name="index"> Index of element </param>
+        /// <returns> Item of list by index </returns>
         public TItem this[int index]
         {
             get
@@ -18,7 +23,8 @@ namespace iMessenger
                 {
                     return _source.ElementAt(index);
                 }
-                throw new ArgumentOutOfRangeException();
+                else
+                    throw new ArgumentOutOfRangeException();
             }
             set
             {
@@ -31,26 +37,45 @@ namespace iMessenger
             }
         }
 
+        /// <summary>
+        /// Gets count of items
+        /// </summary>
         public int Count
         {
             get { return  _source.Count; }
         }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public Roster()
         {
             _source = new List<TItem>();
         }
         
+        /// <summary>
+        /// Adds new item in list
+        /// </summary>
+        /// <param name="newElement"> Element to adding </param>
         public void Add(TItem newElement)             
         {
             _source.Add(newElement);
         }
-
+        
+        /// <summary>
+        /// Deletes item from list
+        /// </summary>
+        /// <param name="oldItem"></param>
         public void Delete(TItem oldItem)       
         {
             _source.Remove(oldItem);
         }
 
+        /// <summary>
+        /// Change old item to the new 
+        /// </summary>
+        /// <param name="oldItem"> Old item </param>
+        /// <param name="newItem"> New item </param>
         public void Change(TItem oldItem, TItem newItem)
         {
             int index = IndexOf(oldItem);
@@ -58,6 +83,11 @@ namespace iMessenger
             _source.Insert(index, newItem);
         }
 
+        /// <summary>
+        /// Gets index of item
+        /// </summary>
+        /// <param name="item"> Item from list </param>
+        /// <returns> Index of item </returns>
         public int IndexOf(TItem item)
         {
             for (int i = 0; i < _source.Count; i++)
@@ -70,6 +100,10 @@ namespace iMessenger
             return -1;
         }
 
+        /// <summary>
+        /// Default enumerator
+        /// </summary>
+        /// <returns> Enumerator </returns>
         public IEnumerator GetEnumerator()
         {
             return _source.GetEnumerator();
