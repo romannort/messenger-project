@@ -3,6 +3,9 @@ using System.Net;
 
 namespace iMessenger
 {
+    /// <summary>
+    /// Encapsualtes data about user.
+    /// </summary>
     public class User : IComparable
     {
 
@@ -45,7 +48,7 @@ namespace iMessenger
         /// <returns></returns>
         int IComparable.CompareTo(object obj)
         {
-            return obj == null ? 0 : String.Compare(Nick, ((User) obj).Nick, StringComparison.Ordinal);
+            return obj == null ? 0 : String.Compare( Name, ((User) obj).Name, StringComparison.Ordinal);
         }
 
         /// <summary>
