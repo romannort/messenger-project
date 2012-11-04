@@ -435,16 +435,11 @@ namespace iMessenger
             {
                 return false;
             }
-            foreach (TabItem item in Tabs.Items)
-            { 
-                if (item.Header.GetType().ToString().Contains("ContentControl")
-                    && (((ContentControl)item.Header).Content.ToString() == newName)
-                    && !item.Equals(Tabs.Items[inRenameState]))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return Tabs.Items
+                .Cast<TabItem>()
+                .All(item => !item.Header.GetType().ToString().Contains("ContentControl") 
+                    || (((ContentControl) item.Header).Content.ToString() != newName) 
+                    || item.Equals(Tabs.Items[inRenameState]));
         }
 
         private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
