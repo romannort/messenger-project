@@ -11,8 +11,10 @@ namespace iMessenger
         /// Reference to application MainWindow
         /// </summary>
         public MainWindow Window;
-        //public String UserName { get; set; }
-        //public IPAddress UserIP;
+
+        /// <summary>
+        /// Information about User
+        /// </summary>
         public readonly User User = new User();
 
         /// <summary>
