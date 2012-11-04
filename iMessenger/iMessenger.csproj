@@ -55,6 +55,7 @@
     </ApplicationDefinition>
     <Compile Include="Helpers\MenuItemBuilder.cs" />
     <Compile Include="Helpers\RunBuilder.cs" />
+    <Compile Include="Receiver.cs" />
     <Compile Include="Roster.cs" />
     <Compile Include="User.cs" />
     <Page Include="MainWindow.xaml">

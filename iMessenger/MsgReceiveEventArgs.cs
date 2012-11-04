@@ -1,15 +1,28 @@
 ﻿
+using System;
+
 namespace iMessenger
 {
     public class MsgReceiveEventArgs
     {
         private readonly Message message;
 
-        public MsgReceiveEventArgs(Message aMessage)
+        public MsgReceiveEventArgs(Message message)
         {
-            message = aMessage;
+            this.message = message;
         }
 
-        public Message Message { get { return message; } }
+        public MsgReceiveEventArgs( Byte[] serializedMessage)
+        {
+            message = Message.Deserialize(serializedMessage);
+        }
+
+        public Message Message 
+        { 
+            get
+            {
+                return message;
+            } 
+        }
     }
 }
