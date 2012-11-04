@@ -37,7 +37,7 @@ namespace iMessenger
         private void ChatLoaded(object sender, RoutedEventArgs e)
         {
             NickBox.Text = Core.UserName;
-            Core.SendMessage(GenerateMessage("", MessageType.JoinCommon));
+            Core.SendMessage(GenerateMessage(String.Empty, MessageType.JoinCommon));
             MessageBox.Focus();
         }
 
@@ -53,7 +53,7 @@ namespace iMessenger
                 {
                     case MessageType.Common:
                         {
-                            ShowAt(0, new Run(message.GetMessageString()));
+                            ShowAt(default(Int32), new Run(message.GetMessageString()));
                             break;
                         }
                     case MessageType.Conference:
@@ -96,11 +96,9 @@ namespace iMessenger
             rtb.ScrollToEnd();
         }
 
-
-
         private void ChatClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Core.SendMessage(GenerateMessage("", MessageType.LeaveCommon));
+            Core.SendMessage(GenerateMessage(String.Empty, MessageType.LeaveCommon));
             Environment.Exit(0x0);
         }
 
@@ -123,16 +121,15 @@ namespace iMessenger
 
         private String GetMessageText()
         {
-            if (!String.IsNullOrEmpty(MessageBox.Text))
+            if (String.IsNullOrEmpty(MessageBox.Text))
             {
-                String data = MessageBox.Text;
-                MessageBox.Clear();
-                MessageBox.Focus();
-                return data;
+                return null;
             }
-            return null;
+            String data = MessageBox.Text;
+            MessageBox.Clear();
+            MessageBox.Focus();
+            return data;
         }
-
 
         /// <summary>
         /// Generates Message from text data and sets appropriate MessageType for it.
@@ -325,7 +322,7 @@ namespace iMessenger
             grid.Children.Add(lb);
             grid.Children.Add(rtb);
 
-            string tag = (message == null ? DateTime.Now.ToString("ddHHmmss") : message.ConferenceNumber);
+            String tag = (message == null ? DateTime.Now.ToString("ddHHmmss") : message.ConferenceNumber);
             TabItem tabItem = new TabItem
             {
                 Background = ((TabItem)Tabs.Items[0]).Background,
@@ -361,7 +358,7 @@ namespace iMessenger
         private void ContextMenu_OnCloseClick(object menuItem, RoutedEventArgs e)
         {
             TabItem toDelete = null;
-            for (var i = 1; i < Tabs.Items.Count - 1; i++)
+            for (int i = 1; i < Tabs.Items.Count - 1; i++)
             {
                 if (((TabItem) Tabs.Items[i]).Name ==
                     ((ContextMenu) ((MenuItem) menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
@@ -431,7 +428,7 @@ namespace iMessenger
 
         private bool CheckUnique(String newName)
         {
-            if(newName == "Common" || newName == "+")
+            if (newName == "Common" || newName == "+")
             {
                 return false;
             }
@@ -458,7 +455,7 @@ namespace iMessenger
                 inRenameState = Tabs.SelectedIndex;
                 CreateRenameBox((ContentControl)sender);
             }
-       }
+        }
 
         private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
         {
