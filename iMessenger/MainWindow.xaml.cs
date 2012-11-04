@@ -22,7 +22,7 @@ namespace iMessenger
         /// </summary>
         public Core Core { get; set; }
         private readonly Roster<User> _roster;
-        private int inRenameState;
+        private int _inRenameState;
 
         /// <summary>
         /// Default constructor.
@@ -34,6 +34,11 @@ namespace iMessenger
             _roster = new Roster<User>();
         }
 
+        /// <summary>
+        /// Method calling after start of application
+        /// </summary>
+        /// <param name="sender"> Pointer at application </param>
+        /// <param name="e"> RoutedEvent arguments </param>
         private void ChatLoaded(object sender, RoutedEventArgs e)
         {
             NickBox.Text = Core.UserName;
@@ -89,6 +94,11 @@ namespace iMessenger
             });
         }
 
+        /// <summary>
+        /// Shows text at given tab
+        /// </summary>
+        /// <param name="idx"> Tab index </param>
+        /// <param name="run"> Parametirized row for showing </param>
         private void ShowAt(int idx, Run run)
         {
             RichTextBox rtb = (RichTextBox)((Grid)((TabItem)Tabs.Items[idx]).Content).Children[1];
@@ -96,14 +106,22 @@ namespace iMessenger
             rtb.ScrollToEnd();
         }
 
-
-
+        /// <summary>
+        /// Operations on chat closing 
+        /// </summary>
+        /// <param name="sender"> Pointer at application </param>
+        /// <param name="e"> CancelEvent arguments </param>
         private void ChatClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Core.SendMessage(GenerateMessage("", MessageType.LeaveCommon));
             Environment.Exit(0x0);
         }
 
+        /// <summary>
+        /// Processing click at SendButton
+        /// </summary>
+        /// <param name="sender"> POinter at SendButton </param>
+        /// <param name="e"> RoutedEvent arguments </param>
         private void SendButtonClick(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
@@ -113,6 +131,11 @@ namespace iMessenger
             }
         }
 
+        /// <summary>
+        /// Processing keystrokes at MessageBox
+        /// </summary>
+        /// <param name="sender"> Pointer at MessageBox </param>
+        /// <param name="e"> KeyEvent arguments </param>
         private void MessageBoxKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -121,6 +144,10 @@ namespace iMessenger
             }
         }
 
+        /// <summary>
+        /// Gets message text from MessageBox
+        /// </summary>
+        /// <returns> Message as string </returns>
         private String GetMessageText()
         {
             if (!String.IsNullOrEmpty(MessageBox.Text))
@@ -153,11 +180,17 @@ namespace iMessenger
             };
         }
 
+        /// <summary>
+        /// Call changing of nickname.
+        /// </summary>
         private void NickBoxLostFocus(object sender, RoutedEventArgs e)
         {
             NicknameChanging();
         }
 
+        /// <summary>
+        /// Checks for uniqueness and change nickname
+        /// </summary>
         private void NicknameChanging()
         {
             if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.UserName)
@@ -196,6 +229,9 @@ namespace iMessenger
             });
         }
 
+        /// <summary>
+        /// Generates random color.
+        /// </summary>
         private static SolidColorBrush RandomColor()
         {
             Byte[] rgb = new Byte[3];
@@ -209,6 +245,11 @@ namespace iMessenger
             return new SolidColorBrush(Color.FromRgb(rgb[0], rgb[1], rgb[2]));
         }
 
+        /// <summary>
+        /// Replaces the old entry in the Connection list to the new
+        /// </summary>
+        /// <param name="oldNick"> Old nickname </param>
+        /// <param name="newNick"> New nickname </param>
         public void ChangeConnectList(string oldNick, string newNick)
         {
             Dispatcher.Invoke((ThreadStart)delegate
@@ -227,6 +268,10 @@ namespace iMessenger
             });
         }
 
+        /// <summary>
+        /// Remove the entry from the Connection list
+        /// </summary>
+        /// <param name="oldNick"> Old nickname </param>
         public void ReplaceConnectList(string oldNick)
         {
             Dispatcher.Invoke((ThreadStart)delegate
@@ -241,6 +286,11 @@ namespace iMessenger
             });
         }
 
+        /// <summary>
+        /// Processing of keystrokes in NickBox
+        /// </summary>
+        /// <param name="sender"> Pointer at NickBox </param>
+        /// <param name="e"> Key event arguments </param>
         private void NickBoxKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter)
@@ -251,20 +301,26 @@ namespace iMessenger
             MessageBox.Focus();
         }
 
+        /// <summary>
+        /// Gets list of receivers from Connection list
+        /// </summary>
+        /// <returns> List of receivers. </returns>
         private List<String> GetReceiversList()
         {
             List<string> receiversList = new List<String>();
             Dispatcher.Invoke((ThreadStart)(() =>
                                             receiversList.AddRange(
                                                 from CheckBox a in
-                                                    ((ListBox)
-                                                     ((Grid) ((TabItem) Tabs.Items[Tabs.SelectedIndex]).Content).
-                                                         Children[0]).Items
+                                                    ((ListBox) ((Grid) ((TabItem) Tabs.Items[Tabs.SelectedIndex]).Content).Children[0]).Items
                                                 where a.IsChecked == true
                                                 select a.Content.ToString())));
             return receiversList;
         }
 
+        /// <summary>
+        /// Gets conference number from current tab
+        /// </summary>
+        /// <returns> Conference number as a string </returns>
         private String GetConferenceNumber()
         {
             string res = "";
@@ -275,6 +331,11 @@ namespace iMessenger
             return res;
         }
 
+        /// <summary>
+        /// If selected the last tab creates a new 
+        /// </summary>
+        /// <param name="sender">Pointer at current tab</param>
+        /// <param name="e">SelectionChangedEvent arguments</param>
         private void TabsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (Tabs.SelectedIndex != Tabs.Items.Count - 1)
@@ -282,9 +343,13 @@ namespace iMessenger
                 return;
             }
             CreateTab(null);
-            Tabs.SelectedIndex -= 1; // Set  current selected tab to new created tab.
+            Tabs.SelectedIndex -= 1;
         }
 
+        /// <summary>
+        /// Creates a new tab
+        /// </summary>
+        /// <param name="message"> Received message </param>
         private void CreateTab(Message message)
         {
             Grid grid = new Grid
@@ -338,7 +403,11 @@ namespace iMessenger
             Tabs.Items.Insert(Tabs.Items.Count - 1, tabItem);
         }
 
-        private void SetHeader(HeaderedContentControl tabItem)
+        /// <summary>
+        /// Sets a header content and context menu
+        /// </summary>
+        /// <param name="tabItem"> Pointer at tab </param>
+        private void SetHeader(TabItem tabItem)
         {
             ContextMenu popupMenu = new ContextMenu
             {
@@ -358,6 +427,11 @@ namespace iMessenger
             ((ContentControl)tabItem.Header).MouseDoubleClick += TabItemMouseDoubleClick;
         }
 
+        /// <summary>
+        /// On Context menu close click method 
+        /// </summary>
+        /// <param name="menuItem"> Pointer at tab </param>
+        /// <param name="e"> RoutedEvent arguments </param>
         private void ContextMenu_OnCloseClick(object menuItem, RoutedEventArgs e)
         {
             TabItem toDelete = null;
@@ -367,7 +441,6 @@ namespace iMessenger
                     ((ContextMenu) ((MenuItem) menuItem).Parent).Name.Replace("PopupMenu", "TabItem"))
                 {
                     toDelete = (TabItem) Tabs.Items[i];
-                    //Core.SendMessage(GenerateMessage(ToDelete.Name.ToString(), MessageType.LeaveConference));
                     break;
                 }
             }
@@ -383,14 +456,23 @@ namespace iMessenger
 
         #region Rename conference
 
+        /// <summary>
+        /// On Context menu rename click method 
+        /// </summary>
+        /// <param name="menuItem"> Pointer at tab </param>
+        /// <param name="e"> RoutedEvent arguments </param>
         private void ContextMenu_OnRenameClick(object menuItem, RoutedEventArgs e)
         {
             TabItem renameItem = Tabs.Items.Cast<TabItem>().First(item => item.Name == ((ContextMenu)((MenuItem)menuItem).Parent).Name.Replace("PopupMenu", "TabItem"));
             Tabs.SelectedItem = renameItem;
-            inRenameState = Tabs.SelectedIndex;
+            _inRenameState = Tabs.SelectedIndex;
             CreateRenameBox((ContentControl)renameItem.Header);
         }
 
+        /// <summary>
+        /// Creates TextBox for rename tab
+        /// </summary>
+        /// <param name="sender"> Pointer at tab header </param>
         private void CreateRenameBox(ContentControl sender)
         {
             TextBox renameBox = new TextBox
@@ -408,6 +490,10 @@ namespace iMessenger
             });
         }
 
+        /// <summary>
+        /// Changes conference name
+        /// </summary>
+        /// <param name="text"> New conference name </param>
         private void ChangeConferenceName(String text)
         {
             if (CheckUnique(text))
@@ -416,19 +502,28 @@ namespace iMessenger
             }
             else
             {
-                ShowAt(inRenameState, RunBuilder.ErrorRun("Conference with such name is already exist!"));
-                Tabs.SelectedIndex = inRenameState;
+                ShowAt(_inRenameState, RunBuilder.ErrorRun("Conference with such name is already exist!"));
+                Tabs.SelectedIndex = _inRenameState;
                 SetHeader((TabItem)Tabs.SelectedItem);
             }
         }
 
+        /// <summary>
+        /// Resets header caption
+        /// </summary>
+        /// <param name="text"> New header caption </param>
         private void ResetHeader(String text)
         {
-            ((TabItem)Tabs.Items[inRenameState]).Header =
-                ((TextBox)((ContentControl)((TabItem)Tabs.Items[inRenameState]).Header).Content).Tag;
-            ((ContentControl)((TabItem)Tabs.Items[inRenameState]).Header).Content = text;
+            ((TabItem)Tabs.Items[_inRenameState]).Header =
+                ((TextBox)((ContentControl)((TabItem)Tabs.Items[_inRenameState]).Header).Content).Tag;
+            ((ContentControl)((TabItem)Tabs.Items[_inRenameState]).Header).Content = text;
         }
 
+        /// <summary>
+        /// Checks the name for uniqueness
+        /// </summary>
+        /// <param name="newName"> New name </param>
+        /// <returns> True if name is unique. Else false. </returns>
         private bool CheckUnique(String newName)
         {
             if(newName == "Common" || newName == "+")
@@ -439,7 +534,7 @@ namespace iMessenger
             { 
                 if (item.Header.GetType().ToString().Contains("ContentControl")
                     && (((ContentControl)item.Header).Content.ToString() == newName)
-                    && !item.Equals(Tabs.Items[inRenameState]))
+                    && !item.Equals(Tabs.Items[_inRenameState]))
                 {
                     return false;
                 }
@@ -447,6 +542,11 @@ namespace iMessenger
             return true;
         }
 
+        /// <summary>
+        /// Processing of keystrokes
+        /// </summary>
+        /// <param name="sender"> Pointer at RenameBox </param>
+        /// <param name="e"> KeyEvent arguments </param>
         private void OnRenameBoxKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter)
@@ -456,15 +556,25 @@ namespace iMessenger
             MessageBox.Focus();
         }
 
+        /// <summary>
+        /// Processing double click at tab header
+        /// </summary>
+        /// <param name="sender"> Pointer at header </param>
+        /// <param name="e"> MouseButtonEvent arguments </param>
         private void TabItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (!((ContentControl)sender).Content.GetType().ToString().Contains("TextBox"))
             {
-                inRenameState = Tabs.SelectedIndex;
+                _inRenameState = Tabs.SelectedIndex;
                 CreateRenameBox((ContentControl)sender);
             }
-       }
+        }
 
+        /// <summary>
+        /// Processing of lost focus by RenameBox
+        /// </summary>
+        /// <param name="sender"> Pointer at RenameBox </param>
+        /// <param name="e"> RoutedEvent arguments </param>
         private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
         {
             ChangeConferenceName(((TextBox)sender).Text);

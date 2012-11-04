@@ -17,6 +17,10 @@ namespace iMessenger
         public List<String> Receivers { get; set; }
         public MessageType Type { get; set; }
 
+        /// <summary>
+        /// Generate string from message
+        /// </summary>
+        /// <returns> Message as formatting string </returns>
         public String GetMessageString()
         {
 
@@ -44,6 +48,11 @@ namespace iMessenger
             }
         }
 
+        /// <summary>
+        /// Deserializes Byte array in Message
+        /// </summary>
+        /// <param name="buffer"> Array to deserialize </param>
+        /// <returns> Deserialized array as Message </returns>
         public static Message Deserialize( Byte[] buffer)
         {
             IFormatter formatter = new BinaryFormatter();
@@ -52,6 +61,12 @@ namespace iMessenger
             s.Close();
             return m;
         }
+
+        /// <summary>
+        /// Serializes Massage in Byte array
+        /// </summary>
+        /// <param name="m"> Message to serialize </param>
+        /// <returns> Serialized message as array </returns>
         public static Byte[] Serialize(Message m)
         {
             IFormatter formatter = new BinaryFormatter();
@@ -64,5 +79,8 @@ namespace iMessenger
         }
     }
 
+    /// <summary>
+    /// Types of messages
+    /// </summary>
     public enum MessageType { Common, System, Conference, ChangeName, JoinCommon, Echo, LeaveCommon, LeaveConference, JoinConference}
 }

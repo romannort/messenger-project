@@ -9,12 +9,19 @@ namespace iMessenger
 {
     public class Core
     {
+        /// <summary>
+        /// Reference to application MainWindow
+        /// </summary>
+        public MainWindow Window;
         private UdpClient _receiveClient;
-        private  IPEndPoint _receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
-        public   MainWindow Window;
-        public  String UserName { get; set; }
+        private IPEndPoint _receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
+        public String UserName { get; set; }
         public IPAddress UserIP;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="window"> Pointer at MainWindow </param>
         public Core(MainWindow window)
         {
             Window = window;
@@ -26,6 +33,9 @@ namespace iMessenger
             StartReceiving();
         }
 
+        /// <summary>
+        /// Configures receiver
+        /// </summary>
         private void ConfigureReceiver()
         {
             _receiveClient = new UdpClient();
@@ -33,17 +43,30 @@ namespace iMessenger
             _receiveClient.ExclusiveAddressUse = false;
             _receiveClient.Client.Bind(_receiveEndPoint);
         }
+
+        /// <summary>
+        /// Starts receiving
+        /// </summary>
         private void StartReceiving()
         {
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
+
+        /// <summary>
+        /// Gets user IP
+        /// </summary>
+        /// <returns> Current IP </returns>
         public IPAddress GetUserIP()
         {
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
             return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork");
         }
 
+        /// <summary>
+        /// Sends message
+        /// </summary>
+        /// <param name="m"> Message for sending </param>
         public void SendMessage(Message m)
         {
             byte[] data = Message.Serialize(m);
@@ -54,20 +77,31 @@ namespace iMessenger
             sendClient.Close();
         }
 
+        /// <summary>
+        /// Receiving messages
+        /// </summary>
         public void ReceiveMessages()
         {
-            while ( AnalyzeReceivedData() ) { }
-            Thread.CurrentThread.Abort();
-            Environment.Exit(0x0);
-        }
-
-        private Boolean AnalyzeReceivedData()
-        {
-            //LogHelper.WriteLog(message);
+            while (AnalyzeReceivedData()) { }                                   //ЭТО ЧЁ ЗА КОСТЫЛЬ?
+            Thread.CurrentThread.Abort();                                       //|
+            Environment.Exit(0x0);                                              //|
+        }                                                                       //|
+                                                                                //|
+        /// <summary>                                                           //|
+        /// Analysing of received data                                          //|
+        /// </summary>                                                          //|
+        private bool AnalyzeReceivedData()                                      //|
+        {                                                                       //|
+            //LogHelper.WriteLog(message);                                      //|
             MessageManager.OnNewMessage(new MsgReceiveEventArgs(Message.Deserialize(_receiveClient.Receive(ref _receiveEndPoint))));
-            return true;
+            return true;    //<---------------------------------------------------|
         }
 
+        /// <summary>
+        /// Processing of received message
+        /// </summary>
+        /// <param name="sender"> Pointer at </param>
+        /// <param name="e"> MsgReceiveEvent arguments </param>
         private void OnMessageReceive(object sender, MsgReceiveEventArgs e)
         {
             switch (e.Message.Type)

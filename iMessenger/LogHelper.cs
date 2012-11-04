@@ -8,6 +8,10 @@ namespace iMessenger
     {
         const String LogFile = "messages.log";
 
+        /// <summary>
+        /// Writes message to log
+        /// </summary>
+        /// <param name="m"> Message to write </param>
         public static void WriteLog(Message m)
         {
             while(true)

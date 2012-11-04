@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace iMessenger
 {
@@ -11,6 +7,10 @@ namespace iMessenger
     {
         public static event EventHandler<MsgReceiveEventArgs> NewMessage;
 
+        /// <summary>
+        /// Processing of received message
+        /// </summary>
+        /// <param name="e"> MsgReceiveEvent arguments </param>
         public static void OnNewMessage(MsgReceiveEventArgs e)
         {
             EventHandler<MsgReceiveEventArgs> temp = Interlocked.CompareExchange(ref NewMessage, null, null);
