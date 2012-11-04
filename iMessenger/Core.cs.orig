@@ -1,165 +1,156 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
 
 namespace iMessenger
 {
     public class Core
     {
-        private UdpClient receiveClient;
-        private  IPEndPoint receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
-        public   MainWindow window;
-        public  String UserName { get; set; }
+<<<<<<< HEAD
+        public MainWindow Window;
+        public readonly User User = new User();
+=======
+        /// <summary>
+        /// Reference to application MainWindow
+        /// </summary>
+        public MainWindow Window;
+        private UdpClient _receiveClient;
+        private IPEndPoint _receiveEndPoint = new IPEndPoint(IPAddress.Any, 1800);
+        public String UserName { get; set; }
+        public IPAddress UserIP;
+>>>>>>> a788ef5b7dadaad8fd7884a0317e48bac48c4fb3
 
-
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="window"> Pointer at MainWindow </param>
         public Core(MainWindow window)
         {
-            try{
-                this.window = window;
-                UserName = GetUserIP();
-
-                receiveClient = new UdpClient();
-                receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                receiveClient.ExclusiveAddressUse = false;
-                receiveClient.Client.Bind(receiveEndPoint);
-                
-            }catch( SocketException e ){
-
-            }
-            
+            Window = window;
+            User.Name = "User#" + DateTime.Now.ToString("ddHHmmss");
+            User.IP = GetUserIP();
+            MessageManager.NewMessage += OnMessageReceive;
+            Receiver.Current.Start();
         }
 
-        public  void StartReceiving()
+<<<<<<< HEAD
+=======
+        /// <summary>
+        /// Configures receiver
+        /// </summary>
+        private void ConfigureReceiver()
+        {
+            _receiveClient = new UdpClient();
+            _receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _receiveClient.ExclusiveAddressUse = false;
+            _receiveClient.Client.Bind(_receiveEndPoint);
+        }
+
+        /// <summary>
+        /// Starts receiving
+        /// </summary>
+        private void StartReceiving()
         {
             Thread receivingThread = new Thread(ReceiveMessages);
             receivingThread.Start(); 
         }
-        public  string GetUserIP()
+
+        /// <summary>
+        /// Gets user IP
+        /// </summary>
+        /// <returns> Current IP </returns>
+>>>>>>> a788ef5b7dadaad8fd7884a0317e48bac48c4fb3
+        public IPAddress GetUserIP()
         {
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
-            return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork").ToString();
+            return host.AddressList.First(ip => ip.AddressFamily.ToString() == "InterNetwork");
         }
 
+        /// <summary>
+        /// Sends message
+        /// </summary>
+        /// <param name="m"> Message for sending </param>
         public void SendMessage(Message m)
         {
-            try{
-                Byte[] data = Message.Serialize(m);
-                
-                UdpClient sendClient = new UdpClient();
-                sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
-                sendClient.Send(data, data.Length, endPoint);
-                sendClient.Close();
-            }catch( NullReferenceException e){
-
-            }
+            Byte[] data = Message.Serialize(m);
+            UdpClient sendClient = new UdpClient();
+            sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, 1800);
+            sendClient.Send(data, data.Length, endPoint);
+            sendClient.Close();
         }
+<<<<<<< HEAD
+        
+=======
 
+        /// <summary>
+        /// Receiving messages
+        /// </summary>
         public void ReceiveMessages()
         {
-            try
-            {
-                while ( AnalyzeReceivedData() ) { }
-                Thread.CurrentThread.Abort();
-                Environment.Exit(0x0);
-            }
-            catch (ThreadAbortException ex)
-            {
-                Environment.Exit(0x0);
-            }
-
+            while (AnalyzeReceivedData()) { }                                   //ЭТО ЧЁ ЗА КОСТЫЛЬ?
+            Thread.CurrentThread.Abort();                                       //|
+            Environment.Exit(0x0);                                              //|
+        }                                                                       //|
+                                                                                //|
+        /// <summary>                                                           //|
+        /// Analysing of received data                                          //|
+        /// </summary>                                                          //|
+        private bool AnalyzeReceivedData()                                      //|
+        {                                                                       //|
+            //LogHelper.WriteLog(message);                                      //|
+            MessageManager.OnNewMessage(new MsgReceiveEventArgs(Message.Deserialize(_receiveClient.Receive(ref _receiveEndPoint))));
+            return true;    //<---------------------------------------------------|
         }
 
-        private Boolean AnalyzeReceivedData(){
-
-<<<<<<< HEAD
-            Message message;
-            try{
-                message = Message.Deserialize( receiveClient.Receive(ref receiveEndPoint));
-            }catch( NullReferenceException e){
-                return true;
-            }
-            
-            LogHelper.WriteLog(message);
-            window.ShowMessage(message);
-
-            if (message.Text.Contains("logged out.") && message.SenderName == UserName && message.Type == MessageType.System)
-=======
-            Message message = Message.Deserialize(receiveClient.Receive(ref receiveEndPoint));
-            LogHelper.WriteLog(message);
-
-            window.ShowMessage(message);
-            if (message.Text.Contains("logged out.") &&  message.Type == MessageType.System)
->>>>>>> 5ad068303f655b9d1c047f8c5283a7052444c921
+        /// <summary>
+        /// Processing of received message
+        /// </summary>
+        /// <param name="sender"> Pointer at </param>
+        /// <param name="e"> MsgReceiveEvent arguments </param>
+>>>>>>> a788ef5b7dadaad8fd7884a0317e48bac48c4fb3
+        private void OnMessageReceive(object sender, MsgReceiveEventArgs e)
+        {
+            switch (e.Message.Type)
             {
-                window.ReplaceConnectList(message.SenderName);
-                return false;
+                case MessageType.LeaveCommon:
+                    {
+                        Window.ReplaceConnectList(e.Message.SenderName);
+                        break;
+                    }
+                case MessageType.JoinCommon:
+                    {
+                        Window.AddAtConnectList(e.Message.SenderName);
+                        if (e.Message.SenderName != User.Name)
+                        {
+                            SendMessage(Window.GenerateMessage(String.Empty , MessageType.Echo));
+                        }
+                        break;
+                    }
+                case MessageType.ChangeName:
+                    {
+                        Window.ChangeConnectList(e.Message.SenderName, e.Message.Text);
+                        break;
+                    }
+                case MessageType.Echo:
+                    {
+                        if (e.Message.SenderName != User.Name)
+                        {
+                            Window.AddAtConnectList(e.Message.SenderName);
+                        }
+                        return;
+                    }
+                default:
+                    {
+                        if (e.Message.Receivers.Contains(User.Name) == false)
+                        {
+                            return;
+                        }
+                        break;
+                    }
             }
-<<<<<<< HEAD
-            else if (message.Text.Contains("joined conference.")  && message.Type == MessageType.System)
-            {
-                window.AddAtConnectList(message.SenderName);
-                if ( message.SenderName != UserName)
-=======
-            else if (message.Text.Contains("joined conference.") &&  message.Type == MessageType.System)
-            {
-                window.AddAtConnectList(message.SenderName);
-                if(message.SenderName != UserName)
->>>>>>> 5ad068303f655b9d1c047f8c5283a7052444c921
-                    SendMessage(window.GenerateMessage("Hello!", MessageType.System));
-            }
-            else if (message.Text.Contains("changed nickname to") &&  message.Type == MessageType.System)
-            {
-<<<<<<< HEAD
-                String newnick = message.Text.Replace(" changed nickname to ", "").Replace(message.SenderName, "");
-                newnick = newnick.Trim();
-=======
-                window.AddAtConnectList(message.SenderName);
-                return true;
-            }
-            else if (message.Text.Contains("changed nickname to")  && message.Type == MessageType.System)
-            {
-                string newnick = message.Text.Replace(" changed nickname to ", "").Replace(message.SenderName, "");
-                window.ChangeConnectList(message.SenderName, newnick);
-                return true;
-            }
-            else if (message.Text.Contains("changed nickname to") && message.SenderName != UserName && message.Type == MessageType.System)
-            {
-                string newnick = message.Text;
-                newnick.Replace(" changed nickname to ", "");
-                newnick.Replace(message.SenderName, "");
->>>>>>> 5ad068303f655b9d1c047f8c5283a7052444c921
-                window.ChangeConnectList(message.SenderName, newnick);
-            }
-<<<<<<< HEAD
-            if (message.Text == "Hello!" && message.Type == MessageType.System && message.SenderName != UserName)
-            {
-                window.AddAtConnectList(message.SenderName);
-            }
-            
-=======
->>>>>>> 5ad068303f655b9d1c047f8c5283a7052444c921
-            return true;
+            Window.ShowMessage(e.Message);
         }
-        
-
     }
 }

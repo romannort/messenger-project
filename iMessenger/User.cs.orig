@@ -1,0 +1,87 @@
+﻿using System;
+using System.Net;
+
+namespace iMessenger
+{
+    public class User : IComparable
+    {
+<<<<<<< HEAD
+
+        public String Name { get; set; }
+        public IPAddress IP { get; set; }
+
+        public User()
+=======
+        public readonly String Nick;
+        
+        protected bool Equals(User other)
+>>>>>>> a788ef5b7dadaad8fd7884a0317e48bac48c4fb3
+        {
+            
+        }
+
+<<<<<<< HEAD
+        public User(String name )
+=======
+        /// <summary>
+        /// Gets Hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+>>>>>>> a788ef5b7dadaad8fd7884a0317e48bac48c4fb3
+        {
+            Name = name;
+        }
+
+<<<<<<< HEAD
+        protected bool Equals(User other)
+        {
+            return string.Equals(Name, other.Name);
+        }
+
+        public override int GetHashCode()
+=======
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="newNick"></param>
+        public User(String newNick)
+>>>>>>> a788ef5b7dadaad8fd7884a0317e48bac48c4fb3
+        {
+            return (Name != null ? Name.GetHashCode() : 0);
+        }
+
+        /// <summary>
+        /// Convert object to string
+        /// </summary>
+        /// <returns> Object as String </returns>
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        /// <summary>
+        /// Compare two objects
+        /// </summary>
+        /// <param name="obj"> Object to compare </param>
+        /// <returns></returns>
+        int IComparable.CompareTo(object obj)
+        {
+<<<<<<< HEAD
+            return obj == null ? 0 : System.String.Compare(Name, ((User) obj).Name, StringComparison.Ordinal);
+=======
+            return obj == null ? 0 : String.Compare(Nick, ((User) obj).Nick, StringComparison.Ordinal);
+>>>>>>> a788ef5b7dadaad8fd7884a0317e48bac48c4fb3
+        }
+
+        /// <summary>
+        /// Compare two objects
+        /// </summary>
+        /// <param name="obj"> Object to compare </param>
+        /// <returns> Return true if objects are equal </returns>
+        public override bool Equals(object obj)
+        {
+            return ((User)obj).Name == Name;
+        }
+    }
+}
