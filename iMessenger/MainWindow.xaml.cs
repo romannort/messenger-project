@@ -201,7 +201,6 @@ namespace iMessenger
                     Core.User.Name = NickBox.Text;
                     return;
                 }
-                //Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, RunBuilder.ErrorRun("This nickname is already in use!"))));
                 throw new Exception("This nickname is already in use!");
             }
             NickBox.Text = Core.User.Name;
@@ -503,11 +502,8 @@ namespace iMessenger
             }
             else
             {
-                //ShowAt(_inRenameState, RunBuilder.ErrorRun("Conference with such name is already exist!"));
-
                 Tabs.SelectedIndex = _inRenameState;
                 SetHeader((TabItem)Tabs.SelectedItem);
-
                 throw new Exception("Conference with such name already exist.");
             }
         }

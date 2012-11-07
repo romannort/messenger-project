@@ -109,6 +109,11 @@ namespace iMessenger
             Window.ShowMessage(e.Message);
         }
 
+        /// <summary>
+        /// Event handler to process all unhandled errors.
+        /// </summary>
+        /// <param name="sender"> Event sender </param>
+        /// <param name="e"> Event arguments </param>
         public void OnErrorRaised(object sender, DispatcherUnhandledExceptionEventArgs e )
         {
             e.Handled = true;
@@ -122,8 +127,6 @@ namespace iMessenger
                                           };
             errorWindow.Show();
             errorWindow.Closed += Window.OnErrorWindowClosed;
-
-            
         }
     }
 }
