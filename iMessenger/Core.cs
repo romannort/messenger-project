@@ -2,6 +2,9 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace iMessenger
 {
@@ -74,7 +77,7 @@ namespace iMessenger
                     }
                 case MessageType.JoinCommon:
                     {
-                        Window.AddAtConnectList(e.Message.SenderName);
+                        Window.AddToConnectList(e.Message.SenderName);
                         if (e.Message.SenderName != User.Name)
                         {
                             SendMessage(Window.GenerateMessage(String.Empty , MessageType.Echo));
@@ -90,7 +93,7 @@ namespace iMessenger
                     {
                         if (e.Message.SenderName != User.Name)
                         {
-                            Window.AddAtConnectList(e.Message.SenderName);
+                            Window.AddToConnectList(e.Message.SenderName);
                         }
                         return;
                     }
@@ -104,6 +107,23 @@ namespace iMessenger
                     }
             }
             Window.ShowMessage(e.Message);
+        }
+
+        public void OnErrorRaised(object sender, DispatcherUnhandledExceptionEventArgs e )
+        {
+            e.Handled = true;
+            ErrorWindow errorWindow = new ErrorWindow
+                                          {
+                                              Visibility = Visibility.Visible,
+                                              ErrorMessage = new Label
+                                              {
+                                                Content = e.Exception.Message                   
+                                              }
+                                          };
+            errorWindow.Show();
+            errorWindow.Closed += Window.OnErrorWindowClosed;
+
+            
         }
     }
 }

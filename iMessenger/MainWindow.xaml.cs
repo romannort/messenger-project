@@ -189,7 +189,7 @@ namespace iMessenger
         }
 
         /// <summary>
-        /// Checks for uniqueness and change nickname
+        /// Changes nickName
         /// </summary>
         private void NicknameChanging()
         {
@@ -201,7 +201,8 @@ namespace iMessenger
                     Core.User.Name = NickBox.Text;
                     return;
                 }
-                Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, RunBuilder.ErrorRun("This nickname is already in use!"))));
+                //Dispatcher.Invoke((ThreadStart)(() => ShowAt(Tabs.SelectedIndex, RunBuilder.ErrorRun("This nickname is already in use!"))));
+                throw new Exception("This nickname is already in use!");
             }
             NickBox.Text = Core.User.Name;
         }
@@ -210,7 +211,7 @@ namespace iMessenger
         /// Adds line with user nickname to Connection list.
         /// </summary>
         /// <param name="newNick">String with user nickname.</param>
-        public void AddAtConnectList(string newNick)
+        public void AddToConnectList(string newNick)
         {
             Dispatcher.Invoke((ThreadStart)delegate
             {
@@ -390,7 +391,7 @@ namespace iMessenger
             grid.Children.Add(lb);
             grid.Children.Add(rtb);
 
-            String tag = (message == null ? DateTime.Now.ToString("ddHHmmss") : message.ConferenceNumber);
+            String tag = message == null ? DateTime.Now.ToString("ddHHmmss") : message.ConferenceNumber;
             TabItem tabItem = new TabItem
             {
                 Background = ((TabItem)Tabs.Items[0]).Background,
@@ -502,9 +503,12 @@ namespace iMessenger
             }
             else
             {
-                ShowAt(_inRenameState, RunBuilder.ErrorRun("Conference with such name is already exist!"));
+                //ShowAt(_inRenameState, RunBuilder.ErrorRun("Conference with such name is already exist!"));
+
                 Tabs.SelectedIndex = _inRenameState;
                 SetHeader((TabItem)Tabs.SelectedItem);
+
+                throw new Exception("Conference with such name already exist.");
             }
         }
 
@@ -581,5 +585,17 @@ namespace iMessenger
         }
 
         #endregion
+
+        public void OnErrorWindowOpened(object sender, EventArgs e)
+        {
+            IsEnabled = false;
+            Focusable = false;
+        }
+
+        public void OnErrorWindowClosed(object sender, EventArgs e)
+        {
+            IsEnabled = true;
+            Focusable = true;
+        }
     }
 }
