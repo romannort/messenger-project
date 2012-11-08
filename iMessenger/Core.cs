@@ -107,6 +107,7 @@ namespace iMessenger
                     }
             }
             Window.ShowMessage(e.Message);
+            LogHelper.Current.WriteLog(e.Message);
         }
 
         /// <summary>
@@ -117,14 +118,8 @@ namespace iMessenger
         public void OnErrorRaised(object sender, DispatcherUnhandledExceptionEventArgs e )
         {
             e.Handled = true;
-            ErrorWindow errorWindow = new ErrorWindow
-                                          {
-                                              Visibility = Visibility.Visible,
-                                              ErrorMessage = new Label
-                                              {
-                                                Content = e.Exception.Message                   
-                                              }
-                                          };
+            ErrorWindow errorWindow = new ErrorWindow {ErrorMessage = {Content = e.Exception.Message}};
+
             errorWindow.Show();
             errorWindow.Closed += Window.OnErrorWindowClosed;
         }

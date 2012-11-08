@@ -42,9 +42,8 @@ namespace iMessenger
             }
             catch (SocketException e)
             {
-                // Possible socket exception while opening socket.
+               
             }
-            
         }
         
         public void Start()
