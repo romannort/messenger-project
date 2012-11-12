@@ -16,12 +16,14 @@ namespace iMessenger
         private IPEndPoint receiveEndPoint;
         private Thread receivingThread;
 
-
         private Receiver()
         {
             ConfigureReceiver();            
         }
 
+        /// <summary>
+        /// Property to access instance of Singleton
+        /// </summary>
         public static Receiver Current
         {
             get
@@ -46,6 +48,9 @@ namespace iMessenger
             }
         }
         
+        /// <summary>
+        /// Starts receiving thread.
+        /// </summary>
         public void Start()
         {
             receivingThread = new Thread(ReceiveMessages);

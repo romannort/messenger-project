@@ -3,6 +3,9 @@ using System.Threading;
 
 namespace iMessenger
 {
+    /// <summary>
+    /// Manage event 
+    /// </summary>
     public static class MessageManager
     {
         public static event EventHandler<MsgReceiveEventArgs> NewMessage;

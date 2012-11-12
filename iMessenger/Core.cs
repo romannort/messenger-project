@@ -2,8 +2,6 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace iMessenger
@@ -33,9 +31,6 @@ namespace iMessenger
             Receiver.Current.Start();
         }
 
-        /// <summary>
-        /// Configures receiver
-        /// </summary>
 
         /// <summary>
         /// Gets user IP
@@ -118,8 +113,16 @@ namespace iMessenger
         public void OnErrorRaised(object sender, DispatcherUnhandledExceptionEventArgs e )
         {
             e.Handled = true;
-            ErrorWindow errorWindow = new ErrorWindow {ErrorMessage = {Content = e.Exception.Message}};
+            ShowErrorWindow(e.Exception.Message);
+        }
 
+        /// <summary>
+        /// Opens window with error description.
+        /// </summary>
+        /// <param name="errorMessage"> Error message </param>
+        public void ShowErrorWindow(String errorMessage)
+        {
+            ErrorWindow errorWindow = new ErrorWindow { ErrorMessage = { Content = errorMessage } };
             errorWindow.Show();
             errorWindow.Closed += Window.OnErrorWindowClosed;
         }

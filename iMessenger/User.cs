@@ -8,8 +8,14 @@ namespace iMessenger
     /// </summary>
     public class User : IComparable
     {
-
+        /// <summary>
+        /// Displayed user name
+        /// </summary>
         public String Name { get; set; }
+
+        /// <summary>
+        /// Current user IP address
+        /// </summary>
         public IPAddress IP { get; set; }
 
         public User()
@@ -17,6 +23,10 @@ namespace iMessenger
             
         }
 
+        /// <summary>
+        /// Initialize constructor
+        /// </summary>
+        /// <param name="name">New User name</param>
         public User(String name )
         {
             Name = name;
@@ -27,6 +37,10 @@ namespace iMessenger
             return string.Equals(Name, other.Name);
         }
 
+        /// <summary>
+        /// Hash code override
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode()
         {
             return (Name != null ? Name.GetHashCode() : 0);

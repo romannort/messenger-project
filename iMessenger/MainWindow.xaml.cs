@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using iMessenger.Exceptions;
 using iMessenger.Helpers;
 
 namespace iMessenger
@@ -120,7 +121,7 @@ namespace iMessenger
         /// <summary>
         /// Processing click at SendButton
         /// </summary>
-        /// <param name="sender"> POinter at SendButton </param>
+        /// <param name="sender"> Pointer at SendButton </param>
         /// <param name="e"> RoutedEvent arguments </param>
         private void SendButtonClick(object sender, RoutedEventArgs e)
         {
@@ -193,17 +194,24 @@ namespace iMessenger
         /// </summary>
         private void NicknameChanging()
         {
-            if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.User.Name)
+            try
             {
-                if (_roster.IndexOf(new User(NickBox.Text)) == -1)
+                if (!String.IsNullOrEmpty(NickBox.Text) && NickBox.Text != Core.User.Name)
                 {
-                    Core.SendMessage(GenerateMessage(NickBox.Text, MessageType.ChangeName));
-                    Core.User.Name = NickBox.Text;
-                    return;
+                    if (_roster.IndexOf(new User(NickBox.Text)) == -1)
+                    {
+                        Core.SendMessage(GenerateMessage(NickBox.Text, MessageType.ChangeName));
+                        Core.User.Name = NickBox.Text;
+                        return;
+                    }
+                    throw new IncorrectInputException("This nickname is already in use!");
                 }
-                throw new Exception("This nickname is already in use!");
+                NickBox.Text = Core.User.Name;
             }
-            NickBox.Text = Core.User.Name;
+            catch (IncorrectInputException e)
+            {
+                Core.ShowErrorWindow(e.Message);   
+            }
         }
 
         /// <summary>
@@ -496,15 +504,22 @@ namespace iMessenger
         /// <param name="text"> New conference name </param>
         private void ChangeConferenceName(String text)
         {
-            if (CheckUnique(text))
+            try
             {
-                ResetHeader(text);
+                if (CheckUnique(text))
+                {
+                    ResetHeader(text);
+                }
+                else
+                {
+                    Tabs.SelectedIndex = _inRenameState;
+                    SetHeader((TabItem)Tabs.SelectedItem);
+                    throw new IncorrectInputException("Conference with such name already exist.");
+                }
             }
-            else
+            catch (IncorrectInputException e)
             {
-                Tabs.SelectedIndex = _inRenameState;
-                SetHeader((TabItem)Tabs.SelectedItem);
-                throw new Exception("Conference with such name already exist.");
+                Core.ShowErrorWindow(e.Message);
             }
         }
 
@@ -582,12 +597,22 @@ namespace iMessenger
 
         #endregion
 
+        /// <summary>
+        /// Event handler that works when new error window opened
+        /// </summary>
+        /// <param name="sender">Event sender</param>
+        /// <param name="e">Event arguments</param>
         public void OnErrorWindowOpened(object sender, EventArgs e)
         {
             IsEnabled = false;
             Focusable = false;
         }
 
+        /// <summary>
+        /// Event handler that works when error window closed
+        /// </summary>
+        /// <param name="sender">Event sender</param>
+        /// <param name="e">Event erguments</param>
         public void OnErrorWindowClosed(object sender, EventArgs e)
         {
             IsEnabled = true;

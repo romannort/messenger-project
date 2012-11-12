@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Text;
 using System.IO;
 
 namespace iMessenger
@@ -10,20 +9,33 @@ namespace iMessenger
     /// </summary>
     public sealed class LogHelper
     {
-        
-        private static readonly LogHelper current = new LogHelper();
+        private static volatile LogHelper current; 
+        private static Object lockObject = new Object();
 
         /// <summary>
         /// Property to access helper instance
         /// </summary>
         public static LogHelper Current
         {
-            get { return current; }
+            get
+            {
+                if (current == null)
+                {
+                    lock (lockObject)
+                    {
+                        if (current == null)
+                        {
+                            current = new LogHelper();
+                        }
+                    }
+                }
+                return current;
+            }
         }
-
-
+     
         private LogHelper()
         {
+            
         }
 
         /// <summary>
@@ -43,25 +55,21 @@ namespace iMessenger
             String fileName = Path.Combine(logDirectory,
                                            (m.Type == MessageType.Common ? "Common" : m.ConferenceNumber) + ".log");
             CreateFile( fileName );
-            while(true)
-            { 
-                try
+            using (FileStream fs = File.OpenWrite(fileName))
+            {
+                using (StreamWriter writer = new StreamWriter(fs))
                 {
-                    File.AppendAllText(fileName, m.GetMessageString() + "\n", Encoding.Default);
-                    break;
-                }
-                catch(IOException e)
-                {
-                    
-                }
-            }
+                    writer.WriteLine(m.GetMessageString());
+                    writer.Close();
+                }    
+            }            
         }
 
         /// <summary>
         /// Creates directory if it no exist.
         /// </summary>
         /// <param name="path">Path to directory</param>
-        private void CreateDirectory(String path)
+        private static void CreateDirectory(String path)
         {
             if (!Directory.Exists(path))
             {
@@ -73,11 +81,11 @@ namespace iMessenger
         /// Creates file if it isn't exist.
         /// </summary>
         /// <param name="path"></param>
-        private void CreateFile(String path)
+        private static void CreateFile(String path)
         {
             if (!File.Exists(path))
             {
-                File.Create(path);
+                File.Create(path).Close();
             }
         }
         

@@ -57,6 +57,7 @@
     <Compile Include="ErrorWindow.xaml.cs">
       <DependentUpon>ErrorWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Exceptions\IncorrectInputException.cs" />
     <Compile Include="Helpers\MenuItemBuilder.cs" />
     <Compile Include="Helpers\RunBuilder.cs" />
     <Compile Include="Receiver.cs" />
